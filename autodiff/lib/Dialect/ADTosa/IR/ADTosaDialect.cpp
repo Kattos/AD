@@ -1,6 +1,6 @@
 // clang-format off
-#include "Dialect/ADTosa/IR/ADTosa.h"
-#include "Dialect/ADTosa/IR/ADTosaDialect.h"
+#include "Dialect/ADTosa/IR/ADTosa.hpp"
+#include "Dialect/ADTosa/IR/ADTosaDialect.hpp"
 
 #include "Dialect/ADTosa/IR/ADTosaDialect.cpp.inc"
 // clang-format on

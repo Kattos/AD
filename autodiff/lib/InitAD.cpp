@@ -1,6 +1,6 @@
 #include "InitAD.h"
 
-#include "Dialect/ADTosa/IR/ADTosaDialect.h"
+#include "Dialect/ADTosa/IR/ADTosaDialect.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
