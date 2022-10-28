@@ -2,7 +2,7 @@
 
 AD is a set of MLIR-based tools that enables automatic diferentiation within MLIR pipelines.
 
-NOTE: This project is at very beginning and updates frequently
+**NOTE: This project is at very beginning and updates frequently**
 
 ## Getting Started
 
