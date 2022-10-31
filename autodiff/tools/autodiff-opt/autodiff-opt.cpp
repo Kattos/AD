@@ -1,4 +1,4 @@
-// Main entry function for audi-opt and derived binaries.
+// Main entry function for autodiff-opt and derived binaries.
 //
 // Based on mlir-opt but registers the passes and dialects we care about.
 

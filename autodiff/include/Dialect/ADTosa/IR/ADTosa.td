@@ -22,7 +22,7 @@ class ADTosa_Op<string mnemonic, list<Trait> traits = []> : Op<ADTosa_Dialect, m
 // Defines the operations of the dialect
 //===----------------------------------------------------------------------===//
 
-def AdTosa_OnesLikeOp : ADTosa_Op<"oneslike"> {
+def ADTosa_OneslikeOp : ADTosa_Op<"oneslike"> {
     let summary = "Creates a tensor of all ones that has the same shape as the input";
 
     let arguments = (ins AnyTensor:$input);
@@ -33,7 +33,7 @@ def AdTosa_OnesLikeOp : ADTosa_Op<"oneslike"> {
     ];
 }
 
-def ADTosa_ZerosLikeOp : ADTosa_Op<"zeroslike"> {
+def ADTosa_ZeroslikeOp : ADTosa_Op<"zeroslike"> {
     let summary = "Creates a tensor of all zeros that has the same shape as the input";
 
     let arguments = (ins AnyTensor:$input);

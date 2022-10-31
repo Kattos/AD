@@ -5,7 +5,7 @@ add_llvm_library(ADAutodiffPass
 
     DEPENDS
     MLIRIR
-    MLIRAutodiffPassIncGen
     MLIRTransforms
+    ADAutodiffPassIncGen
     ADTosaDialect
 )

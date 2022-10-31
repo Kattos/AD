@@ -12,12 +12,12 @@ AD is a set of MLIR-based tools that enables automatic diferentiation within MLI
 
     ```sh
     git clone https://github.com/coder-ccy/AD
-    mkdir audi/build && cd audi/build
+    mkdir AD/build && cd AD/build
     cmake .. -G Ninja # -DMLIR_DIR=/path/to/your/mlir
     ```
 
 3. Take a look around
 
     ```sh
-    audi-opt --help | grep "ad" # see what's new
+    autodiff-opt --help | grep "ad" # see what's new
     ```
