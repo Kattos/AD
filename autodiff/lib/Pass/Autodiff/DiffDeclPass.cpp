@@ -15,7 +15,7 @@ func::FuncOp declareDiffFunction(func::FuncOp funcOp) {
   decltype(auto) block = funcOp->getParentRegion()->getBlocks().back();
   auto builder = OpBuilder::atBlockEnd(&block);
 
-  auto diffOp = cast<func::FuncOp>(builder.insert(funcOp->clone()));
+  auto diffOp = dyn_cast<func::FuncOp>(builder.insert(funcOp->clone()));
 
   // turn name `func` into `diff_func`
   auto funcName = funcOp.getSymName();

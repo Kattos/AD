@@ -5,7 +5,6 @@ add_llvm_library(InitAD
     InitAD.cpp
     
     LINK_LIBS
-    ADTosaDialect
+    ADDialect
     ADAutodiffPass
-    # ADTestingPass
 )

@@ -1,6 +1,6 @@
 #include "InitAD.h"
 
-#include "Dialect/ADTosa/IR/ADTosaDialect.hpp"
+#include "Dialect/AD/IR/ADDialect.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
@@ -19,7 +19,7 @@ void registerAllDialects(DialectRegistry &registry) {
   registry.insert<func::FuncDialect>();
   registry.insert<tosa::TosaDialect>();
 
-  registry.insert<ad_tosa::ADTosaDialect>();
+  registry.insert<ad::ADDialect>();
 }
 
 }  // namespace autodiff

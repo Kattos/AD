@@ -13,4 +13,9 @@ def DiffImplPass : Pass<"ad-diff-impl"> {
     let constructor = "mlir::autodiff::createDiffImplPass()";
 }
 
+def DiffPass : Pass<"ad-diff"> {
+    let summary = "Generate diff version of all functions";
+    let constructor = "mlir::autodiff::createDiffPass()";
+}
+
 #endif // AUTODIFF_PASSES

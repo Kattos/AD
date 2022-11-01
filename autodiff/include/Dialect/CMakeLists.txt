@@ -1,1 +1,1 @@
-add_subdirectory(ADTosa)
+add_subdirectory(AD)

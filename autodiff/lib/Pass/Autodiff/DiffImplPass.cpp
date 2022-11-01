@@ -1,6 +1,5 @@
-#include "Dialect/ADTosa/IR/ADTosaDialect.hpp"
+#include "Dialect/AD/IR/ADDialect.hpp"
 #include "Pass/Autodiff/Passes.hpp"
-#include "Pass/DRR/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/Dialect/Utils/StaticValueUtils.h"
@@ -25,7 +24,6 @@ class LogOpConversionPattern : public OpConversionPattern<tosa::LogOp> {
 class DiffImplPass : public DiffImplPassBase<DiffImplPass> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
-    patterns.insert<NewGradLog>(&getContext());
 
     if (failed(applyPatternsAndFoldGreedily(getOperation(),
                                             std::move(patterns)))) {
@@ -34,7 +32,7 @@ class DiffImplPass : public DiffImplPassBase<DiffImplPass> {
   }
 
   void getDependentDialects(DialectRegistry& registry) const override {
-    registry.insert<ad_tosa::ADTosaDialect>();
+    registry.insert<ad::ADDialect>();
   }
 };
 
