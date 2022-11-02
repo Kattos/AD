@@ -44,11 +44,33 @@ def AD_ZeroslikeOp : AD_Op<"zeroslike"> {
     ];
 }
 
-def AD_BackOp : AD_Op<"back"> {
-    let summary = "Records the output of the computation graph";
+def AD_FromOp : AD_Op<"from"> {
+    let arguments = (ins AnyType:$input);
+}
+
+
+// FIXME: seems like `to` op is useless
+def AD_ToOp : AD_Op<"to"> {
+    let arguments = (ins AnyType:$input);
+}
+
+def AD_ReturnOp : AD_Op<"return"> {
+    let arguments = (ins AnyType:$argument, AnyType:$grad);
+}
+
+// TODO: remove unused operations
+def AD_BackfromOp : AD_Op<"backfrom"> {
+    let summary = "Records the outputs of the computation graph";
 
     let arguments = (ins AnyType:$input);
-    let results = (outs AnyType:$output);
+    // let results = (outs AnyType:$output);
+}
+
+def AD_BacktoOp : AD_Op<"backto"> {
+    let summary = "Records the inputs of the computation graph";
+
+    let arguments = (ins AnyType:$input);
+    // let results = (outs AnyType:$output);
 }
 
 #endif // AD_OPS

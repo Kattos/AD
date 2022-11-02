@@ -5,9 +5,9 @@
 
 namespace mlir {
 namespace autodiff {
-std::unique_ptr<Pass> createDiffDeclPass();
-std::unique_ptr<Pass> createDiffImplPass();
 std::unique_ptr<Pass> createDiffPass();
+std::unique_ptr<Pass> createADPreprocessPass();
+std::unique_ptr<Pass> createADNaivePass();
 }  // namespace autodiff
 }  // namespace mlir
 

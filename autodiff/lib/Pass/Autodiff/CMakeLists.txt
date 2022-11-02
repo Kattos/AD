@@ -1,7 +1,6 @@
 add_llvm_library(ADAutodiffPass
-    DiffDeclPass.cpp
-    DiffImplPass.cpp
-    DiffPass.cpp
+    Naive.cpp
+    Preprocess.cpp
 
     DEPENDS
     MLIRIR

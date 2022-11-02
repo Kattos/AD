@@ -3,19 +3,18 @@
 
 include "mlir/Pass/PassBase.td"
 
-def DiffDeclPass : Pass<"ad-diff-decl"> {
-    let summary = "Declare diff version of non-diff functions";
-    let constructor = "mlir::autodiff::createDiffDeclPass()";
+def PreprocessPass : Pass<"ad-preprocess"> {
+    let summary = "Generate diff version of all functions but not implement them";
+    let constructor = "mlir::autodiff::createADPreprocessPass()";
+
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect"];
 }
 
-def DiffImplPass : Pass<"ad-diff-impl"> {
-    let summary = "Implement diff version of non-diff functions";
-    let constructor = "mlir::autodiff::createDiffImplPass()";
-}
+def NaivePass : Pass<"ad-naive"> {
+    let summary = "Apply autodiff on preprocessed functions naively";
+    let constructor = "mlir::autodiff::createADNaivePass()";
 
-def DiffPass : Pass<"ad-diff"> {
-    let summary = "Generate diff version of all functions";
-    let constructor = "mlir::autodiff::createDiffPass()";
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect"];
 }
 
 #endif // AUTODIFF_PASSES
