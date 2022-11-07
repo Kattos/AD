@@ -42,7 +42,10 @@ class PreprocessPass : public PreprocessPassBase<PreprocessPass> {
     auto firstOp = getFirstOp(diff);
     builder.setInsertionPoint(&*firstOp);
     for (auto argument : diff.getArguments()) {
-      builder.create<ad::ToOp>(builder.getUnknownLoc(), argument);
+      // as placeholder
+      auto to = builder.create<ad::ToOp>(builder.getUnknownLoc(), argument);
+
+      // argument.replaceAllUsesExcept(to, to);
     }
 
     // insert `from` for each output at the end of func body

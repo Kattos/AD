@@ -1,6 +1,8 @@
 #ifndef AUTODIFF_PASSES_H
 #define AUTODIFF_PASSES_H
 
+#include "Dialect/AD/IR/ADDialect.hpp"
+#include "mlir/IR/DialectRegistry.h"
 #include "mlir/Pass/Pass.h"
 
 namespace mlir {

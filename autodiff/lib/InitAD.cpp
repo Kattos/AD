@@ -1,5 +1,6 @@
 #include "InitAD.h"
 
+#include "Conversion/ADToTosa/ADToTosa.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -12,6 +13,7 @@ namespace autodiff {
 void registerAllPasses() {
   // TODO: register all passes needed here
   registerAutodiffPasses();
+  registerConversionPasses();
 }
 
 void registerAllDialects(DialectRegistry &registry) {

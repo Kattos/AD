@@ -1,11 +1,10 @@
-#include <map>
-#include <utility>
-
 #include "Dialect/AD/IR/AD.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
+#include "OpHandler.cpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/IR/Block.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/Value.h"
@@ -13,8 +12,6 @@
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir::autodiff {
-
-// erase `to` op
 class ToPattern : public OpRewritePattern<ad::ToOp> {
   using OpRewritePattern<ad::ToOp>::OpRewritePattern;
 
@@ -25,52 +22,93 @@ class ToPattern : public OpRewritePattern<ad::ToOp> {
   }
 };
 
-class NaivePass : public NaivePassBase<NaivePass> {
-  // void backprop(Operation* op, Value contribution, OpBuilder& builder) {
-  //   auto zeros =
-  //       builder.create<ad::ZeroslikeOp>(builder.getUnknownLoc(),
-  //       contribution)
-  //           .getOutput();
-  //   auto grad = builder.create<tosa::AddOp>(
-  //       builder.getUnknownLoc(), zeros.getType(), zeros, contribution);
-  //   for (auto operand : op->getOperands()) {
-  //     // TODO: support other operations
-  //     if (isa<BlockArgument>(operand)) {
-  //       builder.create<ad::ReturnOp>(builder.getUnknownLoc(), operand, grad);
-  //     } else {
-  //       // TODO: calculate contribution
-  //       backprop(dyn_cast<OpResult>(operand).getOwner(), contribution,
-  //       builder);
-  //     }
-  //   }
-  // }
+class FromPattern : public OpRewritePattern<ad::FromOp> {
+  using OpRewritePattern<ad::FromOp>::OpRewritePattern;
 
-  void backprop(Value value, Value contribution, OpBuilder& builder) {
+  using TAPE = std::unordered_map<Operation*, Value>;
+
+  void backprop(Value value, Value contribution,
+                PatternRewriter& rewriter) const {
+    auto loc = rewriter.getUnknownLoc();
     if (isa<BlockArgument>(value)) {
-      builder.create<ad::ReturnOp>(builder.getUnknownLoc(), value,
-                                   contribution);
+      rewriter.create<ad::ReturnOp>(loc, value, contribution);
       return;
     }
 
-    auto owner = dyn_cast<OpResult>(value).getOwner();
+    auto op = value.getDefiningOp();
 
-    // TODO: find current grads
-    auto currentGrad =
-        builder.create<ad::ZeroslikeOp>(builder.getUnknownLoc(), value);
-    auto grad = builder.create<tosa::AddOp>(builder.getUnknownLoc(),
-                                            currentGrad.getType(), currentGrad,
-                                            contribution);
+    // TODO: find right grads
+    auto grad = rewriter.create<ad::ZeroslikeOp>(loc, value);
+    auto newGrad =
+        rewriter.create<tosa::AddOp>(loc, grad.getType(), grad, contribution)
+            .getOutput();
 
-    // TODO: calculate contribution
-    auto newContribution = grad;
+    auto operands = op->getOperands();
+    SmallVector<Value>* contributions =
+        HandlerFactory::getResults(op, newGrad, rewriter);
 
-    for (auto operand : owner->getOperands()) {
-      backprop(operand, newContribution, builder);
+    // update the gradients of previous operations
+    for (size_t i = 0; i < operands.size(); ++i) {
+      backprop(operands[i], (*contributions)[i], rewriter);
     }
   }
 
+  void backpropWithTape(Value input, Value grad, PatternRewriter& rewriter,
+                        TAPE& tape) const {
+    auto loc = rewriter.getUnknownLoc();
+    if (isa<BlockArgument>(input)) {
+      rewriter.create<ad::ReturnOp>(loc, input, grad);
+      return;
+    }
+    auto op = input.getDefiningOp();
+    if (isa<ad::ToOp>(*op)) {
+      rewriter.create<ad::ReturnOp>(loc, input, grad);
+      return;
+    }
+
+    auto curGrad = tape[op];
+    if (!curGrad) {
+      curGrad = rewriter.create<ad::ZeroslikeOp>(loc, input);
+    }
+    auto newGrad =
+        rewriter.create<tosa::AddOp>(loc, grad.getType(), curGrad, grad);
+    tape[op] = newGrad;
+
+    auto operands = op->getOperands();
+
+    SmallVector<Value>* contributions =
+        HandlerFactory::getResults(op, newGrad, rewriter);
+
+    // update the gradients of previous operations
+    for (size_t i = 0; i < operands.size(); ++i) {
+      backpropWithTape(operands[i], (*contributions)[i], rewriter, tape);
+    }
+  }
+
+  LogicalResult matchAndRewrite(ad::FromOp from,
+                                PatternRewriter& rewriter) const override {
+    auto grad =
+        rewriter
+            .create<ad::OneslikeOp>(rewriter.getUnknownLoc(), from.getInput())
+            .getOutput();
+
+    TAPE tape;
+    tape[from] = grad;
+
+    backpropWithTape(from.getInput(), grad, rewriter, tape);
+
+    rewriter.eraseOp(from);
+    return success();
+  }
+};
+
+class NaivePass : public NaivePassBase<NaivePass> {
   void runOnOperation() override {
     OpBuilder builder(&getContext());
+
+    RewritePatternSet patterns(&getContext());
+    patterns.add<ToPattern>(&getContext());
+    patterns.add<FromPattern>(&getContext());
 
     getOperation()->walk([&](func::FuncOp func) {
       auto isDiff = func->getAttr("diff");
@@ -78,47 +116,29 @@ class NaivePass : public NaivePassBase<NaivePass> {
         return;
       }
 
-      func->walk([&](ad::FromOp from) {
-        builder.setInsertionPointAfter(from);
-
-        auto contribution = builder
-                                .create<ad::OneslikeOp>(builder.getUnknownLoc(),
-                                                        from.getInput())
-                                .getOutput();
-
-        // backprop(from, contribution, builder);
-        backprop(from.getInput(), contribution, builder);
-        from->erase();
-      });
+      // rewrite `ad.from` and `ad.to`
+      if (failed(applyPatternsAndFoldGreedily(func, std::move(patterns)))) {
+        llvm::outs() << "failed\n";
+        signalPassFailure();
+      }
 
       std::map<unsigned int, Value> index2grad;
 
       func->walk([&](ad::ReturnOp ret) {
-        auto index = dyn_cast<BlockArgument>(ret.getArgument()).getArgNumber();
+        auto index = ret.getArgument().cast<BlockArgument>().getArgNumber();
         index2grad[index] = ret.getGrad();
+
         ret->erase();
       });
 
       func->walk([&](func::ReturnOp ret) {
         for (size_t i = 0; i < ret->getOperands().size(); ++i) {
-          auto index =
-              dyn_cast<BlockArgument>(ret->getOperand(i)).getArgNumber();
+          auto index = ret->getOperand(i).cast<BlockArgument>().getArgNumber();
           auto grad = index2grad[index];
           ret->setOperand(i, grad);
         }
       });
     });
-
-    RewritePatternSet patterns(&getContext());
-    patterns.add<ToPattern>(&getContext());
-
-    ConversionTarget target(getContext());
-
-    if (failed(applyPartialConversion(getOperation(), target,
-                                      std::move(patterns)))) {
-      llvm::outs() << "failed\n";
-      signalPassFailure();
-    }
   }
 };
 
