@@ -36,7 +36,8 @@ Value product(OpBuilder& builder, Value lhs, Value rhs) {
   if (!lhs || !rhs) {
     return nullptr;
   }
-  return createOp<tosa::MulOp>(builder, lhs.getType(), lhs, rhs);
+  auto shift = builder.getI32IntegerAttr(0);
+  return createOp<tosa::MulOp>(builder, lhs.getType(), lhs, rhs, shift);
 }
 
 // get operation by value or get value by operation

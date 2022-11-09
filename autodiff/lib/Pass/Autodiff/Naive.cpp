@@ -1,141 +1,162 @@
+#include <cstdio>
+
+#include "ADUtils.hpp"
 #include "Dialect/AD/IR/AD.hpp"
-#include "Dialect/AD/IR/ADDialect.hpp"
 #include "OpHandler.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
-#include "mlir/IR/Block.h"
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/PatternMatch.h"
-#include "mlir/IR/Value.h"
-#include "mlir/Transforms/DialectConversion.h"
-#include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+#include "mlir/IR/BuiltinAttributes.h"
+#include "mlir/IR/BuiltinTypes.h"
+#include "mlir/IR/OpDefinition.h"
+#include "mlir/Pass/Pass.h"
 
 namespace mlir::autodiff {
-class ToPattern : public OpRewritePattern<ad::ToOp> {
-  using OpRewritePattern<ad::ToOp>::OpRewritePattern;
-
-  LogicalResult matchAndRewrite(ad::ToOp to,
-                                PatternRewriter& rewriter) const override {
-    rewriter.eraseOp(to);
-    return success();
-  }
-};
-
-class FromPattern : public OpRewritePattern<ad::FromOp> {
-  using OpRewritePattern<ad::FromOp>::OpRewritePattern;
-
-  using TAPE = std::unordered_map<Operation*, Value>;
-
-  void backprop(Value input, Value grad, PatternRewriter& rewriter) const {
-    auto loc = rewriter.getUnknownLoc();
-    if (isa<BlockArgument>(input)) {
-      rewriter.create<ad::ReturnOp>(loc, input, grad);
-      return;
-    }
-
-    auto op = input.getDefiningOp();
-
-    // TODO: find right grads
-    auto curGrad = rewriter.create<ad::ZeroslikeOp>(loc, input);
-    auto newGrad =
-        rewriter.create<tosa::AddOp>(loc, curGrad.getType(), curGrad, grad);
-
-    auto operands = op->getOperands();
-    SmallVector<Value>* contributions =
-        HandlerFactory::getResults(op, newGrad, rewriter);
-
-    // update the gradients of previous operations
-    for (size_t i = 0; i < operands.size(); ++i) {
-      backprop(operands[i], (*contributions)[i], rewriter);
-    }
-  }
-
-  void backpropWithTape(Value input, Value grad, PatternRewriter& rewriter,
-                        TAPE& tape) const {
-    auto loc = rewriter.getUnknownLoc();
-    if (isa<BlockArgument>(input)) {
-      rewriter.create<ad::ReturnOp>(loc, input, grad);
-      return;
-    }
-    auto op = input.getDefiningOp();
-    if (isa<ad::ToOp>(*op)) {
-      rewriter.create<ad::ReturnOp>(loc, input, grad);
-      return;
-    }
-
-    auto curGrad = tape[op];
-    if (!curGrad) {
-      curGrad = rewriter.create<ad::ZeroslikeOp>(loc, input);
-    }
-    auto newGrad =
-        rewriter.create<tosa::AddOp>(loc, grad.getType(), curGrad, grad);
-    tape[op] = newGrad;
-
-    auto operands = op->getOperands();
-    SmallVector<Value>* contributions =
-        HandlerFactory::getResults(op, newGrad, rewriter);
-
-    // update the gradients of previous operations
-    for (size_t i = 0; i < operands.size(); ++i) {
-      backpropWithTape(operands[i], (*contributions)[i], rewriter, tape);
-    }
-  }
-
-  LogicalResult matchAndRewrite(ad::FromOp from,
-                                PatternRewriter& rewriter) const override {
-    auto grad =
-        rewriter
-            .create<ad::OneslikeOp>(rewriter.getUnknownLoc(), from.getInput())
-            .getOutput();
-
-    TAPE tape;
-    tape[from] = grad;
-
-    backpropWithTape(from.getInput(), grad, rewriter, tape);
-
-    rewriter.eraseOp(from);
-    return success();
-  }
-};
 
 class NaivePass : public NaivePassBase<NaivePass> {
-  void runOnOperation() override {
-    OpBuilder builder(&getContext());
+  void initFunc(func::FuncOp func) {
+    OpBuilder builder(func.getBody());
+    auto loc = func->getLoc();
 
-    RewritePatternSet patterns(&getContext());
-    patterns.add<ToPattern>(&getContext());
-    patterns.add<FromPattern>(&getContext());
+    // insert `to` ops
+    for (auto argument : func.getArguments()) {
+      auto to = builder.create<ad::ToOp>(loc, argument);
+      // ops use `to`'s result instead
+      argument.replaceAllUsesExcept(to, to);
+    }
 
-    getOperation()->walk([&](func::FuncOp func) {
-      auto isDiff = func->getAttr("diff");
-      if (!isDiff) {
+    // `return` must be last op of `func`
+    auto returnOp = func.rbegin()->rbegin();
+
+    // insert `from` ops
+    builder.setInsertionPoint(&*returnOp);
+    for (auto operand : returnOp->getOperands()) {
+      builder.create<ad::FromOp>(loc, operand);
+    }
+
+    // change function type
+    auto argsType = func.getArgumentTypes();
+    auto funcType = builder.getFunctionType(argsType, argsType);
+    func.setFunctionType(funcType);
+
+    // change function name
+    auto newName = ("diff_" + func.getSymName()).str();
+    func.setSymName(newName);
+
+    // replace operands of `return`
+    returnOp->setOperands(func.getArguments());
+  }
+
+  void initIndex(func::FuncOp func) {
+    OpBuilder builder(func.getBody());
+
+    func.getBody().walk([&](Operation* op) {
+      if (isa<func::ReturnOp>(*op)) {
         return;
       }
 
-      // rewrite `ad.from` and `ad.to`
-      if (failed(applyPatternsAndFoldGreedily(func, std::move(patterns)))) {
-        llvm::outs() << "failed\n";
-        signalPassFailure();
+      auto attr = builder.getI64IntegerAttr(counter());
+      op->setAttr(INDEX, attr);
+    });
+  }
+
+  void initGrad(func::FuncOp func) {
+    OpBuilder builder(func.getBody());
+    auto loc = func->getLoc();
+
+    func.getBody().walk([&](ad::FromOp from) {
+      builder.setInsertionPoint(from);
+      auto ones = builder.create<ad::OneslikeOp>(loc, from.getInput());
+      auto index = from->getAttrOfType<IntegerAttr>(INDEX).getInt();
+      indexGradMap[index] = ones;
+    });
+  }
+
+  void init(func::FuncOp func) {
+    initFunc(func);
+    initIndex(func);
+    initGrad(func);
+  }
+
+  void genGrad(ad::ToOp to, func::FuncOp func) {
+    auto returnOp = func.rbegin()->rbegin();
+    OpBuilder builder(&*returnOp);
+
+    // 1. evaluate grad for `to` op
+    auto grad = evaluate(to, builder);
+
+    // 2. replace `return` operand with `to` grad
+    for (size_t i = 0; i < returnOp->getOperands().size(); ++i) {
+      if (to.getInput() == returnOp->getOperands()[i]) {
+        returnOp->setOperand(i, grad);
       }
+    }
 
-      std::map<unsigned int, Value> index2grad;
+    // 3. replace users operand and erase `to`
+    to.getOutput().replaceAllUsesWith(to.getInput());
+    to.erase();
+  }
 
-      func->walk([&](ad::ReturnOp ret) {
-        auto index = ret.getArgument().cast<BlockArgument>().getArgNumber();
-        index2grad[index] = ret.getGrad();
+  void runOnOperation() override {
+    OpBuilder builder(&getContext());
 
-        ret->erase();
-      });
+    getOperation()->walk([&](func::FuncOp func) {
+      init(func);
 
-      func->walk([&](func::ReturnOp ret) {
-        for (size_t i = 0; i < ret->getOperands().size(); ++i) {
-          auto index = ret->getOperand(i).cast<BlockArgument>().getArgNumber();
-          auto grad = index2grad[index];
-          ret->setOperand(i, grad);
+      func.getBody().walk([&](ad::ToOp to) { genGrad(to, func); });
+
+      func.getBody().walk([&](Operation* op) {
+        op->removeAttr(INDEX);
+        if (isa<ad::FromOp>(*op)) {
+          op->erase();
         }
       });
     });
+  }
+
+  const StringRef INDEX = "index";
+
+  int64_t counter() {
+    static int64_t index = 0;
+    return ++index;
+  }
+
+  std::map<int64_t, Value> indexGradMap;
+
+  Value evaluate(Operation* op, OpBuilder& builder) {
+    if (!op || !op->hasAttr(INDEX)) {
+      return nullptr;
+    }
+
+    auto index = op->getAttrOfType<IntegerAttr>(INDEX).getInt();
+    if (indexGradMap[index]) {
+      return indexGradMap[index];
+    }
+
+    Value grad = nullptr;
+    Value value = getRelatedValue(op);
+
+    for (auto user : op->getUsers()) {
+      if (!user->hasAttr(INDEX)) {
+        continue;
+      }
+
+      Value contribution = nullptr;
+      if (isa<ad::FromOp>(*user)) {
+        auto userIndex = user->getAttrOfType<IntegerAttr>(INDEX).getInt();
+        contribution = indexGradMap[userIndex];
+      } else {
+        auto userGrad = evaluate(user, builder);
+
+        contribution =
+            HandlerFactory::getContribution(user, userGrad, value, builder);
+      }
+
+      grad = sum(builder, grad, contribution);
+    }
+
+    indexGradMap[index] = grad;
+    return grad;
   }
 };
 
