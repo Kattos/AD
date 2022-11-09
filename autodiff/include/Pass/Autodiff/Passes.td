@@ -17,4 +17,11 @@ def NaivePass : Pass<"ad-naive"> {
     let dependentDialects = ["mlir::autodiff::ad::ADDialect"];
 }
 
+def ExperimentalPass : Pass<"ad-experimental"> {
+    let summary = "Used for testing purposes only";
+    let constructor = "mlir::autodiff::createADExperimentalPass()";
+
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect"];
+}
+
 #endif // AUTODIFF_PASSES

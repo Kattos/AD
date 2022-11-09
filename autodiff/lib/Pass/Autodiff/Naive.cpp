@@ -1,6 +1,6 @@
 #include "Dialect/AD/IR/AD.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
-#include "OpHandler.cpp"
+#include "OpHandler.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
@@ -27,21 +27,19 @@ class FromPattern : public OpRewritePattern<ad::FromOp> {
 
   using TAPE = std::unordered_map<Operation*, Value>;
 
-  void backprop(Value value, Value contribution,
-                PatternRewriter& rewriter) const {
+  void backprop(Value input, Value grad, PatternRewriter& rewriter) const {
     auto loc = rewriter.getUnknownLoc();
-    if (isa<BlockArgument>(value)) {
-      rewriter.create<ad::ReturnOp>(loc, value, contribution);
+    if (isa<BlockArgument>(input)) {
+      rewriter.create<ad::ReturnOp>(loc, input, grad);
       return;
     }
 
-    auto op = value.getDefiningOp();
+    auto op = input.getDefiningOp();
 
     // TODO: find right grads
-    auto grad = rewriter.create<ad::ZeroslikeOp>(loc, value);
+    auto curGrad = rewriter.create<ad::ZeroslikeOp>(loc, input);
     auto newGrad =
-        rewriter.create<tosa::AddOp>(loc, grad.getType(), grad, contribution)
-            .getOutput();
+        rewriter.create<tosa::AddOp>(loc, curGrad.getType(), curGrad, grad);
 
     auto operands = op->getOperands();
     SmallVector<Value>* contributions =
@@ -75,7 +73,6 @@ class FromPattern : public OpRewritePattern<ad::FromOp> {
     tape[op] = newGrad;
 
     auto operands = op->getOperands();
-
     SmallVector<Value>* contributions =
         HandlerFactory::getResults(op, newGrad, rewriter);
 
