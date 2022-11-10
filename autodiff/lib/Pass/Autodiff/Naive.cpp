@@ -2,8 +2,8 @@
 
 #include "ADUtils.hpp"
 #include "Dialect/AD/IR/AD.hpp"
-#include "OpHandler.hpp"
 #include "Pass/Autodiff/Passes.hpp"
+#include "Rules.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/IR/BuiltinAttributes.h"
@@ -142,14 +142,12 @@ class NaivePass : public NaivePassBase<NaivePass> {
       }
 
       Value contribution = nullptr;
-      if (isa<ad::FromOp>(*user)) {
+      if (isa<ad::FromOp>(user)) {
         auto userIndex = user->getAttrOfType<IntegerAttr>(INDEX).getInt();
         contribution = indexGradMap[userIndex];
       } else {
         auto userGrad = evaluate(user, builder);
-
-        contribution =
-            HandlerFactory::getContribution(user, userGrad, value, builder);
+        contribution = getGradient(user, userGrad, value);
       }
 
       grad = sum(builder, grad, contribution);

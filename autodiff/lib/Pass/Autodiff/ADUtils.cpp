@@ -36,6 +36,7 @@ Value product(OpBuilder& builder, Value lhs, Value rhs) {
   if (!lhs || !rhs) {
     return nullptr;
   }
+
   auto shift = builder.getI32IntegerAttr(0);
   return createOp<tosa::MulOp>(builder, lhs.getType(), lhs, rhs, shift);
 }
@@ -47,6 +48,11 @@ Operation* getRelatedOperation(Value value) {
 
 Value getRelatedValue(Operation* op) {
   return op->getNumResults() == 1 ? op->getResult(0) : nullptr;
+}
+
+void setInsertionPoint(OpBuilder& builder, func::FuncOp func) {
+  auto returnOp = func.rbegin()->rbegin();
+  builder.setInsertionPoint(&*returnOp);
 }
 
 }  // namespace mlir::autodiff

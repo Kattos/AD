@@ -2,6 +2,7 @@
 #define AUTODIFF_ADUTILS_HPP
 
 #include "Dialect/AD/IR/AD.hpp"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 
 namespace mlir::autodiff {
 template <typename DialectType>
@@ -29,6 +30,9 @@ Value sum(OpBuilder& builder, Value lhs, Value rhs);
 Value product(OpBuilder& builder, Value lhs, Value rhs);
 Operation* getRelatedOperation(Value value);
 Value getRelatedValue(Operation* op);
+
+// set insertion point at the end of func body but before `return`
+void setInsertionPoint(OpBuilder& builder, func::FuncOp func);
 }  // namespace mlir::autodiff
 
 #endif  // AUTODIFF_ADUTILS_HPP
