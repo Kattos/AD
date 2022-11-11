@@ -4,6 +4,7 @@
 #include "ADUtils.hpp"
 #include "llvm/ADT/SmallVector.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/IR/OperationSupport.h"
 
 namespace mlir::autodiff {
 
@@ -37,7 +38,7 @@ class UnaryOpRule : public OpRule<OpTy> {
     OpBuilder builder(op);
     builder.setInsertionPointAfter(op);
 
-    SmallVector<Value, 1>* derivatives = new SmallVector<Value, 1>();
+    auto derivatives = std::make_unique<SmallVector<Value, 1>>();
     derivatives->push_back(getInputDerivative(builder, op));
     return *derivatives;
   }
@@ -55,7 +56,7 @@ class BinaryOpRule : public OpRule<OpTy> {
     OpBuilder builder(op);
     builder.setInsertionPointAfter(op);
 
-    SmallVector<Value, 2>* derivatives = new SmallVector<Value, 2>();
+    auto derivatives = std::make_unique<SmallVector<Value, 2>>();
     derivatives->push_back(getLhsDerivative(builder, op));
     derivatives->push_back(getRhsDerivative(builder, op));
     return *derivatives;
@@ -71,7 +72,7 @@ using MulOpRule = BinaryOpRule<tosa::MulOp>;
 
 template <typename RuleTy>
 ValueRange getGradients(Operation* op, Value grad) {
-  static auto rule = std::unique_ptr<RuleTy>(new RuleTy());
+  auto rule = std::make_unique<RuleTy>();
   auto derivatives = rule->getDerivatives(op);
 
   OpBuilder builder(op);
@@ -91,14 +92,11 @@ ValueRange getGradients(Operation* op, Value grad) {
 
 template <typename RuleTy>
 Value getGradient(Operation* op, Value grad, Value input) {
-  auto gradients = getGradients<RuleTy>(op, grad);
-
   for (size_t i = 0; i < op->getNumOperands(); ++i) {
     if (input == op->getOperand(i)) {
       return getGradients<RuleTy>(op, grad)[i];
     }
   }
-
   return nullptr;
 }
 

@@ -52,16 +52,11 @@ class ZeroslikeConverter : public NumslikeConverter<ad::ZeroslikeOp> {
   float getNum() const override { return 0.0f; }
 };
 
-class ADToTosa : public ADToTosaBase<ADToTosa> {
+class ADToTosa : public impl::ADToTosaBase<ADToTosa> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
     patterns.add<OneslikeConverter, ZeroslikeConverter>(&getContext());
-
-    if (failed(applyPatternsAndFoldGreedily(getOperation(),
-                                            std::move(patterns)))) {
-      llvm::outs() << "failed\n";
-      signalPassFailure();
-    }
+    (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }
 };
 

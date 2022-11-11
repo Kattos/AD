@@ -8,5 +8,7 @@ add_llvm_library(InitAD
     LINK_LIBS
     ADDialect
     ADAutodiffPass
-    ADConversionPass
+    ADSimplifyPass
+    ADToTosaConversion
+    ADToCoreConversion
 )

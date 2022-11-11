@@ -1,8 +1,9 @@
 #include "InitAD.h"
 
-#include "Conversion/ADToTosa/ADToTosa.hpp"
+#include "Conversion/Conversion.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Pass/Autodiff/Passes.hpp"
+#include "Pass/Simplify/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/Pass/PassRegistry.h"
@@ -14,6 +15,7 @@ void registerAllPasses() {
   // TODO: register all passes needed here
   registerAutodiffPasses();
   registerConversionPasses();
+  registerSimplifyPasses();
 }
 
 void registerAllDialects(DialectRegistry &registry) {

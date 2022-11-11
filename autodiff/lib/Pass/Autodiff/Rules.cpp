@@ -17,7 +17,7 @@ ValueRange getGradients(Operation* op, Value grad) {
   else if (isa<tosa::MulOp>(op))
     return getGradients<MulOpRule>(op, grad);
   else
-    exit(1 && "Unsupported operation detected");
+    assert(false && "Unsupported operation detected");
 }
 
 Value getGradient(Operation* op, Value grad, Value input) {
@@ -32,7 +32,7 @@ Value getGradient(Operation* op, Value grad, Value input) {
   else if (isa<tosa::MulOp>(op))
     return getGradient<MulOpRule>(op, grad, input);
   else
-    exit(1 && "Unsupported operation detected");
+    assert(false && "Unsupported operation detected");
 }
 
 template <>

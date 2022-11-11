@@ -10,4 +10,11 @@ def ADToTosa : Pass<"ad-to-tosa"> {
     let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::tosa::TosaDialect", "mlir::bufferization::BufferizationDialect"];
 }
 
+def ADToCore : Pass<"ad-to-core"> {
+    let summary = "Convert AD ops to ops from mlir core dialects";
+    let constructor = "mlir::autodiff::createADToCore()";
+
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::tensor::TensorDialect"];
+}
+
 #endif // AD_CONVERSION_PASSES

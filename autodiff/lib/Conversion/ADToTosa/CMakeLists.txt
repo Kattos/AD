@@ -1,6 +1,6 @@
-add_mlir_dialect_library(ADConversionPass
+add_mlir_conversion_library(ADToTosaConversion
     ADToTosa.cpp
 
     DEPENDS
-    ADConversionPassIncGen
+    ADConversionGen
 )

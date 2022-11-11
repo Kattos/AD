@@ -1,5 +1,3 @@
-#include <cstdio>
-
 #include "ADUtils.hpp"
 #include "Dialect/AD/IR/AD.hpp"
 #include "Pass/Autodiff/Passes.hpp"
@@ -14,7 +12,7 @@
 namespace mlir::autodiff {
 
 class NaivePass : public NaivePassBase<NaivePass> {
-  void initFunc(func::FuncOp func) {
+  void initBody(func::FuncOp func) {
     OpBuilder builder(func.getBody());
     auto loc = func->getLoc();
 
@@ -73,10 +71,12 @@ class NaivePass : public NaivePassBase<NaivePass> {
   }
 
   void init(func::FuncOp func) {
-    initFunc(func);
+    initBody(func);
     initIndex(func);
     initGrad(func);
   }
+
+  void deduplicate(func::FuncOp func) {}
 
   void genGrad(ad::ToOp to, func::FuncOp func) {
     auto returnOp = func.rbegin()->rbegin();
@@ -102,15 +102,20 @@ class NaivePass : public NaivePassBase<NaivePass> {
 
     getOperation()->walk([&](func::FuncOp func) {
       init(func);
-
       func.getBody().walk([&](ad::ToOp to) { genGrad(to, func); });
-
       func.getBody().walk([&](Operation* op) {
-        op->removeAttr(INDEX);
-        if (isa<ad::FromOp>(*op)) {
-          op->erase();
+        if (isa<func::ReturnOp>(op)) {
+          return;
         }
+
+        if (isa<ad::ToOp>(op) || isa<ad::FromOp>(op)) {
+          op->erase();
+          return;
+        }
+
+        op->removeAttr(INDEX);
       });
+      deduplicate(func);
     });
   }
 
