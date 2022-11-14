@@ -1,4 +1,4 @@
-#include "Rules.hpp"
+#include "../Rules.hpp"
 
 namespace mlir::autodiff {
 using TosaLogRule = UnaryOpRule<tosa::LogOp>;

@@ -1,4 +1,4 @@
-#include "Rules.hpp"
+#include "../Rules.hpp"
 #include "mlir/Dialect/Math/IR/Math.h"
 
 namespace mlir::autodiff {

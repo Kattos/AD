@@ -1,30 +1,8 @@
 #include "MathRules.hpp"
-
-#include "ADUtils.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
-#include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
-#include "mlir/Support/LLVM.h"
 
 namespace mlir::autodiff {
-
-ValueRange getMathGradients(Operation* op, Value grad) {
-  if (isa<math::AbsFOp>(op))
-    return getGradients<MathAbsFRule>(op, grad);
-  else if (isa<math::AbsIOp>(op))
-    return getGradients<MathAbsIRule>(op, grad);
-  else
-    assert(false && "Unsupported operation detected");
-}
-
-Value getMathGradient(Operation* op, Value grad, Value input) {
-  if (isa<math::AbsFOp>(op))
-    return getGradient<MathAbsFRule>(op, grad, input);
-  else if (isa<math::AbsIOp>(op))
-    return getGradient<MathAbsIRule>(op, grad, input);
-  else
-    assert(false && "Unsupported operation detected");
-}
 
 using CmpFn = function_ref<Value(OpBuilder& builder, Value lhs, Value rhs)>;
 using NegFn = function_ref<Value(OpBuilder& builder, Value input)>;
