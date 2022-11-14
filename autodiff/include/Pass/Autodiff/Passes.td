@@ -7,7 +7,7 @@ def NaivePass : Pass<"ad-naive"> {
     let summary = "Apply autodiff on preprocessed functions naively";
     let constructor = "mlir::autodiff::createADNaivePass()";
 
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect"];
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::scf::SCFDialect"];
 }
 
 #endif // AUTODIFF_PASSES

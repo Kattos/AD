@@ -2,6 +2,7 @@
 #include "ADUtils.hpp"
 
 #include "Dialect/AD/IR/AD.hpp"
+#include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/IR/BuiltinAttributes.h"
@@ -29,7 +30,20 @@ Value sum(OpBuilder& builder, Value lhs, Value rhs) {
   if (!rhs) {
     return lhs;
   }
-  return createOp<tosa::AddOp>(builder, lhs.getType(), lhs, rhs);
+
+  // TODO: support different input types
+  auto lhsType = lhs.getType();
+  auto rhsType = rhs.getType();
+
+  if (isa<TensorType>(lhsType) || isa<TensorType>(rhsType)) {
+    return createOp<tosa::AddOp>(builder, lhs.getType(), lhs, rhs);
+  } else if (isa<FloatType>(lhsType) || isa<FloatType>(rhsType)) {
+    return createOp<arith::AddFOp>(builder, lhs, rhs);
+  } else if (isa<IntegerType>(lhsType) || isa<IntegerType>(rhsType)) {
+    return createOp<arith::AddIOp>(builder, lhs, rhs);
+  }
+
+  return nullptr;
 }
 
 Value product(OpBuilder& builder, Value lhs, Value rhs) {
@@ -37,8 +51,20 @@ Value product(OpBuilder& builder, Value lhs, Value rhs) {
     return nullptr;
   }
 
-  auto shift = builder.getI32IntegerAttr(0);
-  return createOp<tosa::MulOp>(builder, lhs.getType(), lhs, rhs, shift);
+  // TODO: support different input types
+  auto lhsType = lhs.getType();
+  auto rhsType = rhs.getType();
+
+  if (isa<TensorType>(lhsType) || isa<TensorType>(rhsType)) {
+    auto shift = builder.getI32IntegerAttr(0);
+    return createOp<tosa::MulOp>(builder, lhs.getType(), lhs, rhs, shift);
+  } else if (isa<FloatType>(lhsType) || isa<FloatType>(rhsType)) {
+    return createOp<arith::MulFOp>(builder, lhs, rhs);
+  } else if (isa<IntegerType>(lhsType) || isa<IntegerType>(rhsType)) {
+    return createOp<arith::MulIOp>(builder, lhs, rhs);
+  }
+
+  return nullptr;
 }
 
 // get operation by value or get value by operation

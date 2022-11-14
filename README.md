@@ -11,7 +11,7 @@ AD is a set of MLIR-based tools that enables automatic diferentiation within MLI
 2. Build AD
 
     ```sh
-    git clone https://github.com/coder-ccy/AD
+    git clone https://github.com/Kattos/AD
     mkdir AD/build && cd AD/build
     cmake .. -G Ninja # -DMLIR_DIR=/path/to/your/mlir
     ```

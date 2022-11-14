@@ -5,6 +5,7 @@
 #include "Pass/Autodiff/Passes.hpp"
 #include "Pass/Simplify/Passes.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/Pass/PassRegistry.h"
 
@@ -15,6 +16,7 @@ void registerAllPasses() {
   // TODO: register all passes needed here
   registerAutodiffPasses();
   registerConversionPasses();
+  registerTosaConversionPasses();
   registerSimplifyPasses();
 }
 
@@ -22,6 +24,7 @@ void registerAllDialects(DialectRegistry &registry) {
   // TODO: register all dialects needed here
   registry.insert<func::FuncDialect>();
   registry.insert<tosa::TosaDialect>();
+  registry.insert<math::MathDialect>();
 
   registry.insert<ad::ADDialect>();
 }

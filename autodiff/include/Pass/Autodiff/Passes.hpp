@@ -2,6 +2,7 @@
 #define AUTODIFF_PASSES_H
 
 #include "Dialect/AD/IR/ADDialect.hpp"
+#include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/DialectRegistry.h"
 #include "mlir/Pass/Pass.h"
 

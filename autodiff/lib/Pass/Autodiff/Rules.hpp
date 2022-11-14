@@ -46,9 +46,6 @@ class UnaryOpRule : public OpRule<OpTy> {
   Value getInputDerivative(OpBuilder& builder, OpTy op);
 };
 
-using LogOpRule = UnaryOpRule<tosa::LogOp>;
-using ExpOpRule = UnaryOpRule<tosa::ExpOp>;
-
 template <typename OpTy>
 class BinaryOpRule : public OpRule<OpTy> {
  public:
@@ -65,10 +62,6 @@ class BinaryOpRule : public OpRule<OpTy> {
   Value getLhsDerivative(OpBuilder& builder, OpTy op);
   Value getRhsDerivative(OpBuilder& builder, OpTy op);
 };
-
-using AddOpRule = BinaryOpRule<tosa::AddOp>;
-using SubOpRule = BinaryOpRule<tosa::SubOp>;
-using MulOpRule = BinaryOpRule<tosa::MulOp>;
 
 template <typename RuleTy>
 ValueRange getGradients(Operation* op, Value grad) {
@@ -101,12 +94,9 @@ Value getGradient(Operation* op, Value grad, Value input) {
 }
 
 // factory methods
+// TODO: remove this function if no use
 ValueRange getGradients(Operation* op, Value grad);
 Value getGradient(Operation* op, Value grad, Value input);
-
-inline ValueRange getExpGradients(Operation* op, Value grad) {
-  return getGradients<ExpOpRule>(op, grad);
-}
 
 }  // namespace mlir::autodiff
 

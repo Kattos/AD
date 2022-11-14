@@ -28,29 +28,28 @@ class AD_Op<string mnemonic, list<Trait> traits = []> : Op<AD_Dialect, mnemonic,
 def AD_OneslikeOp : AD_Op<"oneslike", [Pure, SameOperandsAndResultType]> {
     let summary = "Creates a tensor of all ones that has the same shape as the input";
 
-    let arguments = (ins AnyTensor:$input);
-    let results = (outs AnyTensor:$output);
+    let arguments = (ins AnyType:$input);
+    let results = (outs AnyType:$output);
 }
 
 def AD_ZeroslikeOp : AD_Op<"zeroslike", [Pure, SameOperandsAndResultType]> {
     let summary = "Creates a tensor of all zeros that has the same shape as the input";
 
-    let arguments = (ins AnyTensor:$input);
-    let results = (outs AnyTensor:$output);
+    let arguments = (ins AnyType:$input);
+    let results = (outs AnyType:$output);
 }
 
 def AD_FromOp : AD_Op<"from"> {
-    let arguments = (ins AnyTensor:$input);
+    let arguments = (ins AnyType:$input);
 }
 
-// FIXME: seems like `to` op is useless
 def AD_ToOp : AD_Op<"to", [SameOperandsAndResultType]> {
-    let arguments = (ins AnyTensor:$input);
-    let results = (outs AnyTensor:$output);
+    let arguments = (ins AnyType:$input);
+    let results = (outs AnyType:$output);
 }
 
 def AD_ReturnOp : AD_Op<"return"> {
-    let arguments = (ins AnyTensor:$argument, AnyTensor:$grad);
+    let arguments = (ins AnyType:$argument, AnyType:$grad);
 }
 
 #endif // AD_OPS
