@@ -7,6 +7,7 @@ namespace mlir::autodiff {
 using CmpFn = function_ref<Value(OpBuilder& builder, Value lhs, Value rhs)>;
 using NegFn = function_ref<Value(OpBuilder& builder, Value input)>;
 
+// TODO: support tensor type
 Value gradAbs(OpBuilder& builder, Operation* op, CmpFn eq, CmpFn gt, NegFn ne) {
   auto input = op->getOperand(0);
   auto zero = zeros(builder, input);

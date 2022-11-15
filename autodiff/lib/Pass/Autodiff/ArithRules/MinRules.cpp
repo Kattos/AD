@@ -3,6 +3,7 @@
 
 namespace mlir::autodiff {
 
+// TODO: support tensor type
 Value gradMin(OpBuilder& builder, Operation* op, Value cond) {
   auto lhs = op->getOperand(0);
   auto ifOp = createOp<scf::IfOp>(builder, lhs.getType(), cond, true);
