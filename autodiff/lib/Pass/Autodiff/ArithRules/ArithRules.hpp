@@ -10,6 +10,12 @@ using ArithSubFRule = BinaryOpRule<arith::SubFOp>;
 using ArithMulIRule = BinaryOpRule<arith::MulIOp>;
 using ArithMulFRule = BinaryOpRule<arith::MulFOp>;
 using ArithDivFRule = BinaryOpRule<arith::DivFOp>;
+using ArithMaxFRule = BinaryOpRule<arith::MaxFOp>;
+using ArithMaxSIRule = BinaryOpRule<arith::MaxSIOp>;
+using ArithMaxUIRule = BinaryOpRule<arith::MaxUIOp>;
+using ArithMinFRule = BinaryOpRule<arith::MinFOp>;
+using ArithMinSIRule = BinaryOpRule<arith::MinSIOp>;
+using ArithMinUIRule = BinaryOpRule<arith::MinUIOp>;
 
 Value getArithGradient(Operation* op, Value grad, Value input);
 

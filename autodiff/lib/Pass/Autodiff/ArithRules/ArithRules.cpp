@@ -2,6 +2,8 @@
 
 #include "AddRules.cpp"
 #include "DivRules.cpp"
+#include "MaxRules.cpp"
+#include "MinRules.cpp"
 #include "MulRules.cpp"
 #include "SubRules.cpp"
 
@@ -28,6 +30,24 @@ Value getArithGradient(Operation* op, Value grad, Value input) {
 
   else if (isa<arith::DivFOp>(op))
     return getGradient<ArithDivFRule>(op, grad, input);
+
+  else if (isa<arith::MaxFOp>(op))
+    return getGradient<ArithMaxFRule>(op, grad, input);
+
+  else if (isa<arith::MaxSIOp>(op))
+    return getGradient<ArithMaxSIRule>(op, grad, input);
+
+  else if (isa<arith::MaxUIOp>(op))
+    return getGradient<ArithMaxUIRule>(op, grad, input);
+
+  else if (isa<arith::MinFOp>(op))
+    return getGradient<ArithMinFRule>(op, grad, input);
+
+  else if (isa<arith::MinSIOp>(op))
+    return getGradient<ArithMinSIRule>(op, grad, input);
+
+  else if (isa<arith::MinUIOp>(op))
+    return getGradient<ArithMinUIRule>(op, grad, input);
 
   else
     assert(false && "Unsupported `arith` operation detected");
