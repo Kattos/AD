@@ -4,6 +4,7 @@
 #include "ADUtils.hpp"
 #include "llvm/ADT/SmallVector.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/OperationSupport.h"
 
 namespace mlir::autodiff {
@@ -56,6 +57,7 @@ class BinaryOpRule : public OpRule<OpTy> {
     auto derivatives = std::make_unique<SmallVector<Value, 2>>();
     derivatives->push_back(getLhsDerivative(builder, op));
     derivatives->push_back(getRhsDerivative(builder, op));
+
     return *derivatives;
   }
 
@@ -63,23 +65,23 @@ class BinaryOpRule : public OpRule<OpTy> {
   Value getRhsDerivative(OpBuilder& builder, OpTy op);
 };
 
+// TODO: support different operand types/shapes
+// FIXME: not works well
 template <typename RuleTy>
 ValueRange getGradients(Operation* op, Value grad) {
   auto rule = std::make_unique<RuleTy>();
   auto derivatives = rule->getDerivatives(op);
+  assert(op->getNumOperands() == derivatives.size() && "Wrong operation rule");
 
   OpBuilder builder(op);
-  auto func = dyn_cast<func::FuncOp>(op->getParentOp());
-  assert(func && "Unsupported nested func body");
-
   builder.setInsertionPointAfterValue(grad);
 
   SmallVector<Value> gradients;
-  for (auto d : derivatives) {
-    auto g = product(builder, grad, d);
-    gradients.push_back(g);
-  }
 
+  for (size_t i = 0; i < derivatives.size(); ++i) {
+    auto gradient = product(builder, grad, derivatives[i]);
+    gradients.push_back(gradient);
+  }
   return gradients;
 }
 

@@ -76,8 +76,6 @@ class NaivePass : public NaivePassBase<NaivePass> {
     initGrad(func);
   }
 
-  void deduplicate(func::FuncOp func) {}
-
   void genGrad(ad::ToOp to, func::FuncOp func) {
     auto returnOp = func.rbegin()->rbegin();
     OpBuilder builder(&*returnOp);
@@ -115,7 +113,6 @@ class NaivePass : public NaivePassBase<NaivePass> {
 
         op->removeAttr(INDEX);
       });
-      deduplicate(func);
     });
   }
 

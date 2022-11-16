@@ -52,4 +52,9 @@ def AD_ReturnOp : AD_Op<"return"> {
     let arguments = (ins AnyType:$argument, AnyType:$grad);
 }
 
+def AD_PlaceholderOp : AD_Op<"placeholder", [SameOperandsAndResultType]> {
+    let arguments = (ins AnyType:$input);
+    let results = (outs AnyType:$output);
+}
+
 #endif // AD_OPS

@@ -2,6 +2,26 @@
 
 namespace mlir::autodiff {
 
+ValueRange getTosaGradients(Operation* op, Value grad) {
+  if (isa<tosa::ExpOp>(op))
+    return getGradients<TosaExpRule>(op, grad);
+
+  else if (isa<tosa::LogOp>(op))
+    return getGradients<TosaLogRule>(op, grad);
+
+  else if (isa<tosa::AddOp>(op))
+    return getGradients<TosaAddRule>(op, grad);
+
+  else if (isa<tosa::SubOp>(op))
+    return getGradients<TosaSubRule>(op, grad);
+
+  else if (isa<tosa::MulOp>(op))
+    return getGradients<TosaMulRule>(op, grad);
+
+  else
+    assert(false && "Unsupported `tosa` operation detected");
+}
+
 Value getTosaGradient(Operation* op, Value grad, Value input) {
   if (isa<tosa::ExpOp>(op))
     return getGradient<TosaExpRule>(op, grad, input);

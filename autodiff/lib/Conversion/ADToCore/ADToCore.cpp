@@ -68,10 +68,21 @@ class ZeroslikeToCore : public OpRewritePattern<ad::ZeroslikeOp> {
   };
 };
 
+class PlaceholderToCore : public OpRewritePattern<ad::PlaceholderOp> {
+  using OpRewritePattern<ad::PlaceholderOp>::OpRewritePattern;
+
+  LogicalResult matchAndRewrite(ad::PlaceholderOp placeholder,
+                                PatternRewriter& rewriter) const override {
+    rewriter.replaceOp(placeholder, placeholder.getInput());
+    return success();
+  }
+};
+
 class ADToCore : public impl::ADToCoreBase<ADToCore> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
-    patterns.add<OneslikeToCore, ZeroslikeToCore>(&getContext());
+    patterns.add<OneslikeToCore, ZeroslikeToCore, PlaceholderToCore>(
+        &getContext());
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }
 };

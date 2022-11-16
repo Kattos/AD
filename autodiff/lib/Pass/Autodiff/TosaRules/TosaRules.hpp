@@ -1,6 +1,7 @@
 #include "../Rules.hpp"
 
 namespace mlir::autodiff {
+
 using TosaLogRule = UnaryOpRule<tosa::LogOp>;
 using TosaExpRule = UnaryOpRule<tosa::ExpOp>;
 

@@ -6,14 +6,29 @@
 
 namespace mlir::autodiff {
 
+ValueRange getGradients(Operation* op, Value grad) {
+  if (isIn<tosa::TosaDialect>(op))
+    return getTosaGradients(op, grad);
+
+  else if (isIn<math::MathDialect>(op))
+    return getMathGradients(op, grad);
+
+  else if (isIn<arith::ArithDialect>(op))
+    return getArithGradients(op, grad);
+
+  return {};
+}
+
 Value getGradient(Operation* op, Value grad, Value input) {
-  if (isIn<tosa::TosaDialect>(op)) {
+  if (isIn<tosa::TosaDialect>(op))
     return getTosaGradient(op, grad, input);
-  } else if (isIn<math::MathDialect>(op)) {
+
+  else if (isIn<math::MathDialect>(op))
     return getMathGradient(op, grad, input);
-  } else if (isIn<arith::ArithDialect>(op)) {
+
+  else if (isIn<arith::ArithDialect>(op))
     return getArithGradient(op, grad, input);
-  }
+
   return nullptr;
 }
 

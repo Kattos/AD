@@ -9,6 +9,7 @@
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/Pass/PassRegistry.h"
 
@@ -31,6 +32,7 @@ void registerAllDialects(DialectRegistry &registry) {
   registry.insert<memref::MemRefDialect>();
   registry.insert<bufferization::BufferizationDialect>();
   registry.insert<linalg::LinalgDialect>();
+  registry.insert<tensor::TensorDialect>();
 
   registry.insert<ad::ADDialect>();
 }

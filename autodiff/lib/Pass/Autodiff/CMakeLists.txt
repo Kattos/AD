@@ -5,6 +5,7 @@ add_llvm_library(ADAutodiffPass
     TosaRules/TosaRules.cpp
     MathRules/MathRules.cpp
     ArithRules/ArithRules.cpp
+    Experimental.cpp
     
     DEPENDS
     MLIRIR

@@ -17,6 +17,7 @@ using ArithMinFRule = BinaryOpRule<arith::MinFOp>;
 using ArithMinSIRule = BinaryOpRule<arith::MinSIOp>;
 using ArithMinUIRule = BinaryOpRule<arith::MinUIOp>;
 
+ValueRange getArithGradients(Operation* op, Value grad);
 Value getArithGradient(Operation* op, Value grad, Value input);
 
 }  // namespace mlir::autodiff
