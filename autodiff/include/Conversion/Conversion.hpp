@@ -3,6 +3,7 @@
 
 #include "Conversion/ADToCore/ADToCore.hpp"
 #include "Conversion/ADToTosa/ADToTosa.hpp"
+#include "Conversion/GradToCore/GradToCore.hpp"
 #include "mlir/Conversion/TosaToLinalg/TosaToLinalg.h"
 
 #define GEN_PASS_REGISTRATION

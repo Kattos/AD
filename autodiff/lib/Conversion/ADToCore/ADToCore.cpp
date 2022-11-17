@@ -1,6 +1,7 @@
 #include "Conversion/ADToCore/ADToCore.hpp"
 
 #include "Abs.cpp"
+#include "GradAbs.cpp"
 #include "Numslike.cpp"
 #include "Placeholder.cpp"
 #include "Rsqrt.cpp"
@@ -15,7 +16,8 @@ class ADToCore : public impl::ADToCoreBase<ADToCore> {
                  ZeroslikeToCore, 
                  PlaceholderToCore,
                  AbsToCore,
-                 RsqrtToCore>(&getContext());
+                 RsqrtToCore,
+                 GradAbsToCore>(&getContext());
     // clang-format on
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }

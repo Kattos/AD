@@ -1,6 +1,7 @@
 add_llvm_library(ADRules
     Rules.cpp
     Utils.cpp
+    Helper.cpp
     ArithRules/ArithRules.cpp
     ArithRules/CmpUtils.cpp
     MathRules/MathRules.cpp

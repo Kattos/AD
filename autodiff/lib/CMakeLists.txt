@@ -10,7 +10,7 @@ add_llvm_library(InitAD
     ADDialect
     ADAutodiffPass
     ADSimplifyPass
-    ADToTosaConversion
-    ADToCoreConversion
+    ADConversion
     ADRules
+    GradDialect
 )

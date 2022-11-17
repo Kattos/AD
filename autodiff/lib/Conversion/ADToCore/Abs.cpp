@@ -1,5 +1,5 @@
 #include "Conversion/Conversion.hpp"
-#include "Helper.hpp"
+#include "Rule/Helper.hpp"
 #include "Rule/Rules.hpp"
 #include "Rule/Utils.hpp"
 #include "mlir/Dialect/Math/IR/Math.h"
@@ -9,8 +9,8 @@ namespace mlir::autodiff {
 template <typename AbsTy>
 Value calAbsGrad(Operation* op, ValueRange args, ArrayRef<Type> resultTypes,
                  PatternRewriter& rewriter) {
-  auto absf = createOp<AbsTy>(rewriter, resultTypes, args);
-  return getGradient(absf, ones(rewriter, absf), args[0]);
+  auto abs = createOp<AbsTy>(rewriter, resultTypes, args);
+  return getGradient(abs, ones(rewriter, abs), args[0]);
 }
 
 class AbsToCore : public OpRewritePattern<ad::AbsOp> {

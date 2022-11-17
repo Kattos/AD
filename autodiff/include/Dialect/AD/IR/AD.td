@@ -68,9 +68,9 @@ def AD_RsqrtOp : AD_Op<"rsqrt", [SameOperandsAndResultType]> {
     let results = (outs AnyType:$dx);
 }
 
-def AD_AddOp : AD_Op<"add"> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs);
-    let results = (outs AnyType:$dlhs, AnyType:$drhs);
+def AD_GradAbsOp : AD_Op<"grad_abs"> {
+    let arguments = (ins AnyType:$x, AnyType:$grad);
+    let results = (outs AnyType:$dx);
 }
 
 #endif // AD_OPS
