@@ -1,7 +1,8 @@
-#include "ADUtils.hpp"
 #include "Dialect/AD/IR/AD.hpp"
 #include "Pass/Autodiff/Passes.hpp"
-#include "Rules.hpp"
+#include "Rule/Rules.hpp"
+#include "Rule/Utils.hpp"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 
 namespace mlir::autodiff {
 
@@ -15,7 +16,8 @@ int64_t counter() {
 // create `placeholder` op and replace all uses of its operand
 ad::PlaceholderOp setPlaceholder(OpBuilder& builder, Value value) {
   builder.setInsertionPointAfterValue(value);
-  auto placeholder = createOp<ad::PlaceholderOp>(builder, value);
+  auto placeholder =
+      builder.create<ad::PlaceholderOp>(builder.getUnknownLoc(), value);
   value.replaceAllUsesExcept(placeholder, placeholder);
   return placeholder;
 }

@@ -1,4 +1,5 @@
-#include "../Rules.hpp"
+#include "Rule/Rules.hpp"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
 
 namespace mlir::autodiff {
 

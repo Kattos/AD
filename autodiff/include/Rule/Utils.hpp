@@ -3,7 +3,6 @@
 
 #include "Dialect/AD/IR/AD.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
-#include "mlir/Dialect/Func/IR/FuncOps.h"
 
 namespace mlir::autodiff {
 template <typename DialectType>

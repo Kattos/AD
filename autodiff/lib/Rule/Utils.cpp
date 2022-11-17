@@ -1,7 +1,6 @@
 
-#include "ADUtils.hpp"
-
 #include "Dialect/AD/IR/AD.hpp"
+#include "Rule/Utils.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"

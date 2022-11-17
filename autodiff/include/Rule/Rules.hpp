@@ -1,11 +1,8 @@
-#ifndef AUTODIFF_DERIVATIVES_HPP
-#define AUTODIFF_DERIVATIVES_HPP
+#ifndef RULES_HPP
+#define RULES_HPP
 
-#include "ADUtils.hpp"
-#include "llvm/ADT/SmallVector.h"
-#include "mlir/Dialect/Tosa/IR/TosaOps.h"
-#include "mlir/IR/BuiltinTypes.h"
-#include "mlir/IR/OperationSupport.h"
+#include "Utils.hpp"
+// #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 
 namespace mlir::autodiff {
 
@@ -116,4 +113,4 @@ Value getGradient(Operation* op, Value grad, Value input);
 
 }  // namespace mlir::autodiff
 
-#endif  // AUTODIFF_DERIVATIVES_HPP
+#endif  // RULES_HPP
