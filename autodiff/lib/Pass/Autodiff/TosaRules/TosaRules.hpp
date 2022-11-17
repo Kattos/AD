@@ -4,6 +4,7 @@ namespace mlir::autodiff {
 
 using TosaLogRule = UnaryOpRule<tosa::LogOp>;
 using TosaExpRule = UnaryOpRule<tosa::ExpOp>;
+using TosaNegateRule = UnaryOpRule<tosa::NegateOp>;
 
 using TosaAddRule = BinaryOpRule<tosa::AddOp>;
 using TosaSubRule = BinaryOpRule<tosa::SubOp>;

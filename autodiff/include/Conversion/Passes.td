@@ -3,6 +3,7 @@
 
 include "mlir/Pass/PassBase.td"
 
+// TODO: remove deprecated pass
 def ADToTosa : Pass<"ad-to-tosa"> {
     let summary = "Convert AD ops to TOSA ops";
     let constructor = "mlir::autodiff::createADToTosa()";
@@ -14,7 +15,7 @@ def ADToCore : Pass<"ad-to-core"> {
     let summary = "Convert AD ops to ops from mlir core dialects";
     let constructor = "mlir::autodiff::createADToCore()";
 
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::tensor::TensorDialect"];
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::tensor::TensorDialect", "mlir::tosa::TosaDialect", "mlir::linalg::LinalgDialect"];
 }
 
 #endif // AD_CONVERSION_PASSES

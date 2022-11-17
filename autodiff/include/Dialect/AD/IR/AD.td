@@ -57,4 +57,14 @@ def AD_PlaceholderOp : AD_Op<"placeholder", [SameOperandsAndResultType]> {
     let results = (outs AnyType:$output);
 }
 
+def AD_AbsOp : AD_Op<"abs", [SameOperandsAndResultType]> {
+    let arguments = (ins AnyType:$x);
+    let results = (outs AnyType:$dx);
+}
+
+def AD_AddOp : AD_Op<"add"> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs);
+    let results = (outs AnyType:$dlhs, AnyType:$drhs);
+}
+
 #endif // AD_OPS

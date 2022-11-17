@@ -1,5 +1,7 @@
 #include "TosaRules.hpp"
 
+#include "NegateRules.cpp"
+
 namespace mlir::autodiff {
 
 ValueRange getTosaGradients(Operation* op, Value grad) {
@@ -8,6 +10,9 @@ ValueRange getTosaGradients(Operation* op, Value grad) {
 
   else if (isa<tosa::LogOp>(op))
     return getGradients<TosaLogRule>(op, grad);
+
+  else if (isa<tosa::NegateOp>(op))
+    return getGradients<TosaNegateRule>(op, grad);
 
   else if (isa<tosa::AddOp>(op))
     return getGradients<TosaAddRule>(op, grad);
@@ -28,6 +33,9 @@ Value getTosaGradient(Operation* op, Value grad, Value input) {
 
   else if (isa<tosa::LogOp>(op))
     return getGradient<TosaLogRule>(op, grad, input);
+
+  else if (isa<tosa::NegateOp>(op))
+    return getGradient<TosaNegateRule>(op, grad, input);
 
   else if (isa<tosa::AddOp>(op))
     return getGradient<TosaAddRule>(op, grad, input);

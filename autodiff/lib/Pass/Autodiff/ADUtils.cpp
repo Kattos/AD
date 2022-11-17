@@ -98,4 +98,13 @@ Value cmpI(OpBuilder& builder, Operation* op, arith::CmpIPredicate predicate) {
   return cmpI(builder, lhs, rhs, predicate);
 }
 
+// TODO: implement reduce function
+Value reduce(OpBuilder& builder, Value larger, Value smaller) {
+  auto largerType = larger.getType().cast<TensorType>();
+  auto smallerType = smaller.getType().cast<TensorType>();
+  assert(largerType && smallerType && "Support tensor ruduce only");
+
+  return nullptr;
+}
+
 }  // namespace mlir::autodiff

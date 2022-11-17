@@ -1,7 +1,9 @@
 #include "Conversion/ADToCore/ADToCore.hpp"
 
 #include "Dialect/AD/IR/AD.hpp"
+#include "Helper.cpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/PatternMatch.h"

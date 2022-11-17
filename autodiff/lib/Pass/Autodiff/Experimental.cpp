@@ -66,8 +66,8 @@ void backprop(OpBuilder& builder, Operation* op, Value outputGrad) {
     if (!operandGrad) {
       continue;
     }
-    auto op = getRelatedOperation(operand);
-    backprop(builder, op, operandGrad);
+    auto prevOp = getRelatedOperation(operand);
+    backprop(builder, prevOp, operandGrad);
   }
 }
 
