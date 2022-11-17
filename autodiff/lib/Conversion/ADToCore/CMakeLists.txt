@@ -4,4 +4,5 @@ add_mlir_conversion_library(ADToCoreConversion
 
     DEPENDS
     ADConversionGen
+    ADRules
 )

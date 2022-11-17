@@ -1,4 +1,5 @@
 #include "ArithRules.hpp"
+#include "CmpUtils.hpp"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 
 namespace mlir::autodiff {

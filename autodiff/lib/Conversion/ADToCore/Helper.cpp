@@ -1,3 +1,5 @@
+#include "Helper.hpp"
+
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
@@ -8,13 +10,9 @@ namespace mlir::autodiff {
 
 using namespace tosa;
 
-using BodyFn =
-    function_ref<Value(Operation *op, ValueRange args,
-                       ArrayRef<Type> resultTypes, PatternRewriter &rewriter)>;
-
 LogicalResult elementwiseMatchAndRewriteHelper(Operation *operation,
                                                PatternRewriter &rewriter,
-                                               BodyFn bodyFn) {
+                                               CalFn calFn) {
   auto loc = operation->getLoc();
 
   assert(operation->getNumResults() == 1 &&
@@ -107,8 +105,8 @@ LogicalResult elementwiseMatchAndRewriteHelper(Operation *operation,
       getNParallelLoopsAttrs(rank),
       [&](OpBuilder &nestedBuilder, Location nestedLoc, ValueRange blockArgs) {
         Value opResult =
-            bodyFn(operation, blockArgs.take_front(operation->getNumOperands()),
-                   bodyResultTypes, rewriter);
+            calFn(operation, blockArgs.take_front(operation->getNumOperands()),
+                  bodyResultTypes, rewriter);
         if (!opResult) {
           didEncounterError = true;
           return;

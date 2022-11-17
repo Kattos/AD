@@ -1,5 +1,5 @@
-#ifndef AUTODIFF_ADUTILS_HPP
-#define AUTODIFF_ADUTILS_HPP
+#ifndef AD_UTILS_HPP
+#define AD_UTILS_HPP
 
 #include "Dialect/AD/IR/AD.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
@@ -31,13 +31,8 @@ Value product(OpBuilder& builder, Value lhs, Value rhs);
 Operation* getRelatedOperation(Value value);
 Value getRelatedValue(Operation* op);
 
-Value cmpF(OpBuilder& builder, Value lhs, Value rhs,
-           arith::CmpFPredicate predicate);
-Value cmpF(OpBuilder& builder, Operation* op, arith::CmpFPredicate predicate);
-Value cmpI(OpBuilder& builder, Value lhs, Value rhs,
-           arith::CmpIPredicate predicate);
-Value cmpI(OpBuilder& builder, Operation* op, arith::CmpIPredicate predicate);
+LogicalResult notNull(Value value);
 
 }  // namespace mlir::autodiff
 
-#endif  // AUTODIFF_ADUTILS_HPP
+#endif  // AD_UTILS_HPP

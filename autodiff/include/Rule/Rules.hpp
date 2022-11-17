@@ -1,5 +1,5 @@
-#ifndef RULES_HPP
-#define RULES_HPP
+#ifndef AD_RULES_HPP
+#define AD_RULES_HPP
 
 #include "Utils.hpp"
 // #include "mlir/Dialect/Tosa/IR/TosaOps.h"
@@ -113,4 +113,4 @@ Value getGradient(Operation* op, Value grad, Value input);
 
 }  // namespace mlir::autodiff
 
-#endif  // RULES_HPP
+#endif  // AD_RULES_HPP

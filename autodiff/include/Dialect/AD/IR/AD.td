@@ -39,6 +39,7 @@ def AD_ZeroslikeOp : AD_Op<"zeroslike", [Pure, SameOperandsAndResultType]> {
     let results = (outs AnyType:$output);
 }
 
+// TODO: remove `from`, `to` and `return` if they are useless
 def AD_FromOp : AD_Op<"from"> {
     let arguments = (ins AnyType:$input);
 }
@@ -58,6 +59,11 @@ def AD_PlaceholderOp : AD_Op<"placeholder", [SameOperandsAndResultType]> {
 }
 
 def AD_AbsOp : AD_Op<"abs", [SameOperandsAndResultType]> {
+    let arguments = (ins AnyType:$x);
+    let results = (outs AnyType:$dx);
+}
+
+def AD_RsqrtOp : AD_Op<"rsqrt", [SameOperandsAndResultType]> {
     let arguments = (ins AnyType:$x);
     let results = (outs AnyType:$dx);
 }

@@ -15,7 +15,7 @@ def ADToCore : Pass<"ad-to-core"> {
     let summary = "Convert AD ops to ops from mlir core dialects";
     let constructor = "mlir::autodiff::createADToCore()";
 
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::tensor::TensorDialect", "mlir::tosa::TosaDialect", "mlir::linalg::LinalgDialect"];
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::tensor::TensorDialect", "mlir::tosa::TosaDialect", "mlir::linalg::LinalgDialect", "mlir::scf::SCFDialect"];
 }
 
 #endif // AD_CONVERSION_PASSES
