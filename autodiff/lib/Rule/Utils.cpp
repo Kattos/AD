@@ -1,6 +1,7 @@
 
-#include "Dialect/AD/IR/AD.hpp"
 #include "Rule/Utils.hpp"
+
+#include "Dialect/AD/IR/AD.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
@@ -86,6 +87,11 @@ Value reduce(OpBuilder& builder, Value larger, Value smaller) {
 
 LogicalResult notNull(Value value) {
   return value == nullptr ? failure() : success();
+}
+
+int64_t counter() {
+  static int64_t index = 0;
+  return ++index;
 }
 
 }  // namespace mlir::autodiff

@@ -33,6 +33,8 @@ Value getRelatedValue(Operation* op);
 
 LogicalResult notNull(Value value);
 
+int64_t counter();
+
 }  // namespace mlir::autodiff
 
 #endif  // AD_UTILS_HPP

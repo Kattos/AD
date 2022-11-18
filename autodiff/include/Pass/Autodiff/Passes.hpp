@@ -2,6 +2,7 @@
 #define AUTODIFF_PASSES_H
 
 #include "Dialect/AD/IR/ADDialect.hpp"
+#include "Dialect/Grad/IR/GradDialect.hpp"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/IR/DialectRegistry.h"
@@ -9,8 +10,11 @@
 
 namespace mlir {
 namespace autodiff {
+
 std::unique_ptr<Pass> createADNaivePass();
 std::unique_ptr<Pass> createADExperimentalPass();
+std::unique_ptr<Pass> createADGradPass();
+
 }  // namespace autodiff
 }  // namespace mlir
 

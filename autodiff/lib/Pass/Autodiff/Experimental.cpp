@@ -8,11 +8,6 @@ namespace mlir::autodiff {
 
 const StringRef REQGRAD = "requires_grad";
 
-int64_t counter() {
-  static int64_t index = 0;
-  return ++index;
-}
-
 // create `placeholder` op and replace all uses of its operand
 ad::PlaceholderOp setPlaceholder(OpBuilder& builder, Value value) {
   builder.setInsertionPointAfterValue(value);

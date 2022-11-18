@@ -1,8 +1,10 @@
 #include "MathRules.hpp"
 
 #include "AbsRules.cpp"
+#include "ExpRules.cpp"
 #include "LogRules.cpp"
 #include "RsqrtRules.cpp"
+#include "TanhRules.cpp"
 
 namespace mlir::autodiff {
 
@@ -27,6 +29,12 @@ ValueRange getMathGradients(Operation* op, Value grad) {
 
   else if (isa<math::RsqrtOp>(op))
     return getGradients<MathRsqrtRule>(op, grad);
+
+  else if (isa<math::ExpOp>(op))
+    return getGradients<MathExpRule>(op, grad);
+
+  else if (isa<math::TanhOp>(op))
+    return getGradients<MathTanhRule>(op, grad);
 
   else
     assert(false && "Unsupported `math` operation detected");
@@ -53,6 +61,12 @@ Value getMathGradient(Operation* op, Value grad, Value input) {
 
   else if (isa<math::RsqrtOp>(op))
     return getGradient<MathRsqrtRule>(op, grad, input);
+
+  else if (isa<math::ExpOp>(op))
+    return getGradient<MathExpRule>(op, grad, input);
+
+  else if (isa<math::TanhOp>(op))
+    return getGradient<MathTanhRule>(op, grad, input);
 
   else
     assert(false && "Unsupported `math` operation detected");

@@ -22,7 +22,7 @@ def GradToCore : Pass<"grad-to-core"> {
     let summary = "Convert Grad ops to ops from mlir core dialects";
     let constructor = "mlir::autodiff::createGradToCore()";
 
-    let dependentDialects = [];
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::math::MathDialect", "mlir::scf::SCFDialect", "mlir::tensor::TensorDialect", "mlir::linalg::LinalgDialect"];
 }
 
 #endif // AD_CONVERSION_PASSES
