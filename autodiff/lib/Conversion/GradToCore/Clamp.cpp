@@ -1,4 +1,3 @@
-#include "Dialect/Grad/IR/Grad.hpp"
 #include "Rewriter.hpp"
 
 namespace mlir::autodiff {

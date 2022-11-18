@@ -31,4 +31,10 @@ def Grad_ClampOp : Grad_UnaryOp<"clamp"> {
     let arguments = (ins AnyType:$x, AnyType:$dout, I64Attr:$min_int, I64Attr:$max_int, F32Attr:$min_fp, F32Attr:$max_fp);
 }
 
+def Grad_NegateOp : Grad_UnaryOp<"negate">;
+
+def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal">;
+
+def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid">;
+
 #endif // GRAD_OPS

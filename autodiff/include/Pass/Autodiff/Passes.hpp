@@ -15,6 +15,8 @@ std::unique_ptr<Pass> createADNaivePass();
 std::unique_ptr<Pass> createADExperimentalPass();
 std::unique_ptr<Pass> createADGradPass();
 
+void registerAutodiffPipeline();
+
 }  // namespace autodiff
 }  // namespace mlir
 

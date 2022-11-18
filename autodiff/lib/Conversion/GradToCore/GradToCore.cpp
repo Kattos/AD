@@ -2,6 +2,8 @@
 
 #include "Abs.cpp"
 #include "Clamp.cpp"
+#include "Reciprocal.cpp"
+#include "Sigmoid.cpp"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir::autodiff {
@@ -15,7 +17,10 @@ class GradToCore : public impl::GradToCoreBase<GradToCore> {
                  LogToCore,
                  ExpToCore,
                  TanhToCore,
-                 ClampToCore>(&getContext());
+                 ClampToCore,
+                 NegateToCore,
+                 ReciprocalToCore,
+                 SigmoidToCore>(&getContext());
     // clang-format on
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }

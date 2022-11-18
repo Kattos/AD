@@ -24,6 +24,8 @@ void registerAllPasses() {
   registerConversionPasses();
   registerTosaConversionPasses();
   registerSimplifyPasses();
+
+  registerAutodiffPipeline();
 }
 
 void registerAllDialects(DialectRegistry &registry) {

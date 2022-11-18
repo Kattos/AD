@@ -46,6 +46,7 @@ using RsqrtToCore = UnaryToCore<grad::RsqrtOp, math::RsqrtOp>;
 using LogToCore = UnaryToCore<grad::LogOp, math::LogOp>;
 using ExpToCore = UnaryToCore<grad::ExpOp, math::ExpOp>;
 using TanhToCore = UnaryToCore<grad::TanhOp, math::TanhOp>;
+using NegateToCore = UnaryToCore<grad::NegateOp, arith::NegFOp>;
 
 }  // namespace mlir::autodiff
 

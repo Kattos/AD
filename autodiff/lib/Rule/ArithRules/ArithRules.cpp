@@ -5,7 +5,9 @@
 #include "MaxRules.cpp"
 #include "MinRules.cpp"
 #include "MulRules.cpp"
+#include "NegRules.cpp"
 #include "SubRules.cpp"
+#include "mlir/Dialect/Arith/IR/Arith.h"
 
 namespace mlir::autodiff {
 
@@ -48,6 +50,9 @@ ValueRange getArithGradients(Operation* op, Value grad) {
 
   else if (isa<arith::MinUIOp>(op))
     return getGradients<ArithMinUIRule>(op, grad);
+
+  else if (isa<arith::NegFOp>(op))
+    return getGradients<ArithNegFRule>(op, grad);
 
   else
     assert(false && "Unsupported `arith` operation detected");
@@ -92,6 +97,9 @@ Value getArithGradient(Operation* op, Value grad, Value input) {
 
   else if (isa<arith::MinUIOp>(op))
     return getGradient<ArithMinUIRule>(op, grad, input);
+
+  else if (isa<arith::NegFOp>(op))
+    return getGradient<ArithNegFRule>(op, grad, input);
 
   else
     assert(false && "Unsupported `arith` operation detected");

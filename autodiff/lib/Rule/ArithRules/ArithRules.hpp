@@ -16,6 +16,7 @@ using ArithMaxUIRule = BinaryOpRule<arith::MaxUIOp>;
 using ArithMinFRule = BinaryOpRule<arith::MinFOp>;
 using ArithMinSIRule = BinaryOpRule<arith::MinSIOp>;
 using ArithMinUIRule = BinaryOpRule<arith::MinUIOp>;
+using ArithNegFRule = UnaryOpRule<arith::NegFOp>;
 
 ValueRange getArithGradients(Operation* op, Value grad);
 Value getArithGradient(Operation* op, Value grad, Value input);
