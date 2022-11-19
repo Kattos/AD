@@ -94,7 +94,7 @@ Value reduce(OpBuilder& builder, Value from, Value to) {
   auto fromShape = fromType.cast<ShapedType>().getShape();
   auto toShape = toType.cast<ShapedType>().getShape();
 
-  if (fromShape == toShape) {
+  if (fromShape == toShape || fromShape.size() < toShape.size()) {
     return from;
   }
 
@@ -127,6 +127,23 @@ Value reduce(OpBuilder& builder, Value from, Value to) {
 
   auto attr = builder.getI64ArrayAttr(toShape);
   // reshape
+  return createOp<tosa::ReshapeOp>(builder, to.getType(), from, attr);
+}
+
+Value broadcast(OpBuilder& builder, Value from, Value to) {
+  auto fromType = from.getType();
+  auto toType = to.getType();
+
+  assert(isa<ShapedType>(fromType) && isa<ShapedType>(toType));
+
+  auto fromShape = fromType.cast<ShapedType>().getShape();
+  auto toShape = toType.cast<ShapedType>().getShape();
+
+  if (fromShape == toShape) {
+    return from;
+  }
+
+  auto attr = builder.getI64ArrayAttr(toShape);
   return createOp<tosa::ReshapeOp>(builder, to.getType(), from, attr);
 }
 

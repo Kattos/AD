@@ -31,38 +31,44 @@ class AddToCore : public OpRewritePattern<grad::AddOp> {
 class AddLhsToCore : public OpRewritePattern<grad::AddLhsOp> {
   using OpRewritePattern<grad::AddLhsOp>::OpRewritePattern;
 
-  LogicalResult matchAndRewrite(grad::AddLhsOp lhs,
+  LogicalResult matchAndRewrite(grad::AddLhsOp lhsOp,
                                 PatternRewriter& rewriter) const override {
-    auto resultType = lhs.getType();
+    auto resultType = lhsOp.getType();
 
     if (auto shapedType = resultType.dyn_cast<ShapedType>()) {
       auto elemType = shapedType.getElementType();
-      auto dout = lhs.getDout();
-      auto doutForLhs = reduce(rewriter, dout, lhs.getLhs());
-      lhs->setOperand(2, doutForLhs);
+      auto lhs = lhsOp.getLhs();
+
+      auto dout = lhsOp.getDout();
+      auto doutForLhs = reduce(rewriter, dout, lhs);
+      lhsOp->setOperand(2, doutForLhs);
+
+      auto rhs = lhsOp.getRhs();
+      auto rhsForLhs = reduce(rewriter, rhs, lhs);
+      lhsOp->setOperand(1, rhsForLhs);
 
       if (isa<IntegerType>(elemType))
-        return elementwiseMatchAndRewriteHelper(lhs, rewriter,
+        return elementwiseMatchAndRewriteHelper(lhsOp, rewriter,
                                                 lhsCalFn<arith::AddIOp>);
 
       else
-        return elementwiseMatchAndRewriteHelper(lhs, rewriter,
+        return elementwiseMatchAndRewriteHelper(lhsOp, rewriter,
                                                 lhsCalFn<arith::AddFOp>);
     }
 
     Value value;
 
     if (isa<IntegerType>(resultType))
-      value =
-          lhsCalFn<arith::AddIOp>(lhs, lhs.getOperands(), resultType, rewriter);
+      value = lhsCalFn<arith::AddIOp>(lhsOp, lhsOp.getOperands(), resultType,
+                                      rewriter);
 
     else
-      value =
-          rhsCalFn<arith::AddFOp>(lhs, lhs.getOperands(), resultType, rewriter);
+      value = rhsCalFn<arith::AddFOp>(lhsOp, lhsOp.getOperands(), resultType,
+                                      rewriter);
 
     if (!value) return failure();
 
-    rewriter.replaceOp(lhs, value);
+    rewriter.replaceOp(lhsOp, value);
     return success();
   }
 };
@@ -70,38 +76,44 @@ class AddLhsToCore : public OpRewritePattern<grad::AddLhsOp> {
 class AddRhsToCore : public OpRewritePattern<grad::AddRhsOp> {
   using OpRewritePattern<grad::AddRhsOp>::OpRewritePattern;
 
-  LogicalResult matchAndRewrite(grad::AddRhsOp rhs,
+  LogicalResult matchAndRewrite(grad::AddRhsOp rhsOp,
                                 PatternRewriter& rewriter) const override {
-    auto resultType = rhs.getType();
+    auto resultType = rhsOp.getType();
 
     if (auto shapedType = resultType.dyn_cast<ShapedType>()) {
       auto elemType = shapedType.getElementType();
-      auto dout = rhs.getDout();
-      auto doutForRhs = reduce(rewriter, dout, rhs.getRhs());
-      rhs->setOperand(2, doutForRhs);
+      auto rhs = rhsOp.getRhs();
+
+      auto dout = rhsOp.getDout();
+      auto doutForRhs = reduce(rewriter, dout, rhs);
+      rhsOp->setOperand(2, doutForRhs);
+
+      auto lhs = rhsOp.getLhs();
+      auto lhsForRhs = reduce(rewriter, lhs, rhs);
+      rhsOp->setOperand(0, lhsForRhs);
 
       if (isa<IntegerType>(elemType))
-        return elementwiseMatchAndRewriteHelper(rhs, rewriter,
+        return elementwiseMatchAndRewriteHelper(rhsOp, rewriter,
                                                 rhsCalFn<arith::AddIOp>);
 
       else
-        return elementwiseMatchAndRewriteHelper(rhs, rewriter,
+        return elementwiseMatchAndRewriteHelper(rhsOp, rewriter,
                                                 rhsCalFn<arith::AddFOp>);
     }
 
     Value value;
 
     if (isa<IntegerType>(resultType))
-      value =
-          rhsCalFn<arith::AddIOp>(rhs, rhs.getOperands(), resultType, rewriter);
+      value = rhsCalFn<arith::AddIOp>(rhsOp, rhsOp.getOperands(), resultType,
+                                      rewriter);
 
     else
-      value =
-          rhsCalFn<arith::AddFOp>(rhs, rhs.getOperands(), resultType, rewriter);
+      value = rhsCalFn<arith::AddFOp>(rhsOp, rhsOp.getOperands(), resultType,
+                                      rewriter);
 
     if (!value) return failure();
 
-    rewriter.replaceOp(rhs, value);
+    rewriter.replaceOp(rhsOp, value);
     return success();
   }
 };
