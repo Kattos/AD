@@ -13,17 +13,24 @@ using namespace tosa;
 LogicalResult elementwiseMatchAndRewriteHelper(Operation *operation,
                                                PatternRewriter &rewriter,
                                                CalFn calFn) {
-  auto loc = operation->getLoc();
+  auto generic = buildGeneric(operation, rewriter, calFn);
 
-  assert(operation->getNumResults() == 1 &&
-         "All TOSA elementwise ops should only return a single result.");
+  if (!generic) {
+    return failure();
+  }
+
+  rewriter.replaceOp(operation, generic->getResults());
+  return success();
+}
+
+linalg::GenericOp buildGeneric(Operation *operation, PatternRewriter &rewriter,
+                               CalFn calFn) {
+  auto loc = operation->getLoc();
 
   auto results = operation->getResults();
   auto resultTy = operation->getResult(0).getType().dyn_cast<ShapedType>();
 
-  if (!resultTy)
-    return rewriter.notifyMatchFailure(operation,
-                                       "All results must be a shaped type");
+  if (!resultTy) return nullptr;
 
   unsigned rank = resultTy.getRank();
 
@@ -114,10 +121,9 @@ LogicalResult elementwiseMatchAndRewriteHelper(Operation *operation,
         nestedBuilder.create<linalg::YieldOp>(loc, opResult);
       });
 
-  if (didEncounterError) return failure();
+  if (didEncounterError) return nullptr;
 
-  rewriter.replaceOp(operation, linalgOp->getResults());
-  return success();
+  return linalgOp;
 }
 
 }  // namespace mlir::autodiff

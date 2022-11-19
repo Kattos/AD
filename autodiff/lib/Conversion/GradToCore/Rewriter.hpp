@@ -48,6 +48,31 @@ using ExpToCore = UnaryToCore<grad::ExpOp, math::ExpOp>;
 using TanhToCore = UnaryToCore<grad::TanhOp, math::TanhOp>;
 using NegateToCore = UnaryToCore<grad::NegateOp, arith::NegFOp>;
 
+template <typename GradTy>
+Value binaryCalFn(Operation* op, ValueRange args, ArrayRef<Type> resultTypes,
+                  PatternRewriter& rewriter, Value which) {
+  auto lhs = args[0];
+  auto rhs = args[1];
+  auto dout = args[2];
+
+  auto gradOp = createOp<GradTy>(rewriter, lhs.getType(), lhs, rhs);
+  auto grad = getGradient(gradOp, ones(rewriter, gradOp), which);
+
+  return product(rewriter, dout, grad);
+}
+
+template <typename GradTy>
+Value lhsCalFn(Operation* op, ValueRange args, ArrayRef<Type> resultTypes,
+               PatternRewriter& rewriter) {
+  return binaryCalFn<GradTy>(op, args, resultTypes, rewriter, args[0]);
+}
+
+template <typename GradTy>
+Value rhsCalFn(Operation* op, ValueRange args, ArrayRef<Type> resultTypes,
+               PatternRewriter& rewriter) {
+  return binaryCalFn<GradTy>(op, args, resultTypes, rewriter, args[1]);
+}
+
 }  // namespace mlir::autodiff
 
 #endif  // GRADTOCORE_REWRITER_H

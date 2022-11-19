@@ -1,6 +1,7 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 
 #include "Abs.cpp"
+#include "Add.cpp"
 #include "Clamp.cpp"
 #include "Reciprocal.cpp"
 #include "Sigmoid.cpp"
@@ -22,6 +23,7 @@ class GradToCore : public impl::GradToCoreBase<GradToCore> {
                  ReciprocalToCore,
                  SigmoidToCore>(&getContext());
     // clang-format on
+    populateAddToCore(patterns);
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }
 };

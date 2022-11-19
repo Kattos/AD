@@ -34,6 +34,7 @@ Value getRelatedValue(Operation* op);
 LogicalResult notNull(Value value);
 
 int64_t counter();
+Value reduce(OpBuilder& builder, Value from, Value to);
 
 }  // namespace mlir::autodiff
 

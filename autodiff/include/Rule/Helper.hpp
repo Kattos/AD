@@ -1,4 +1,5 @@
 #include "Rule/Utils.hpp"
+#include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/IR/Operation.h"
 #include "mlir/IR/PatternMatch.h"
 
@@ -11,5 +12,8 @@ using CalFn =
 LogicalResult elementwiseMatchAndRewriteHelper(Operation *op,
                                                PatternRewriter &rewriter,
                                                CalFn loopFn);
+
+linalg::GenericOp buildGeneric(Operation *op, PatternRewriter &rewriter,
+                               CalFn loopFn);
 
 }  // namespace mlir::autodiff

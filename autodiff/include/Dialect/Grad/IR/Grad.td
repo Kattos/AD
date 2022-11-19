@@ -17,6 +17,24 @@ class Grad_UnaryOp<string mnemonic, list<Trait> traits=[Pure, SameOperandsAndRes
     let results = (outs AnyType:$dx);
 }
 
+class Grad_BinaryOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
+    let results = (outs AnyType:$dlhs, AnyType:$drhs);
+
+    let hasVerifier = 1;
+}
+
+class Grad_BinaryLhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
+    let results = (outs AnyType:$dlhs);
+}
+
+
+class Grad_BinaryRhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
+    let results = (outs AnyType:$drhs);
+}
+
 def Grad_AbsOp : Grad_UnaryOp<"abs">;
 
 def Grad_ExpOp : Grad_UnaryOp<"exp">;
@@ -36,5 +54,11 @@ def Grad_NegateOp : Grad_UnaryOp<"negate">;
 def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal">;
 
 def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid">;
+
+def Grad_AddOp : Grad_BinaryOp<"add">;
+
+def Grad_AddLhsOp : Grad_BinaryLhsOp<"add_lhs">;
+
+def Grad_AddRhsOp : Grad_BinaryRhsOp<"add_rhs">;
 
 #endif // GRAD_OPS

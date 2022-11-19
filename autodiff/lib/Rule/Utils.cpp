@@ -76,15 +76,6 @@ Value getRelatedValue(Operation* op) {
   return op->getNumResults() == 1 ? op->getResult(0) : nullptr;
 }
 
-// TODO: implement reduce function
-Value reduce(OpBuilder& builder, Value larger, Value smaller) {
-  auto largerType = larger.getType().cast<TensorType>();
-  auto smallerType = smaller.getType().cast<TensorType>();
-  assert(largerType && smallerType && "Support tensor ruduce only");
-
-  return nullptr;
-}
-
 LogicalResult notNull(Value value) {
   return value == nullptr ? failure() : success();
 }
@@ -92,6 +83,51 @@ LogicalResult notNull(Value value) {
 int64_t counter() {
   static int64_t index = 0;
   return ++index;
+}
+
+Value reduce(OpBuilder& builder, Value from, Value to) {
+  auto fromType = from.getType();
+  auto toType = to.getType();
+
+  assert(isa<ShapedType>(fromType) && isa<ShapedType>(toType));
+
+  auto fromShape = fromType.cast<ShapedType>().getShape();
+  auto toShape = toType.cast<ShapedType>().getShape();
+
+  if (fromShape == toShape) {
+    return from;
+  }
+
+  auto elemType = fromType.cast<ShapedType>().getElementType();
+
+  auto fromVec = fromShape.vec();
+  auto toVec = toShape.vec();
+  while (fromVec.size() > toVec.size()) {
+    toVec.emplace_back(1);
+  }
+
+  for (size_t i = 0; i < fromShape.size(); ++i) {
+    auto fromDim = fromVec[i];
+    auto toDim = toVec[i];
+
+    if (fromDim == toDim) {
+      continue;
+    }
+
+    assert(toDim == 1 && "Cannot reduce along non-singleton dimension");
+
+    // TODO: whether to support memref
+    fromVec[i] = 1;
+    auto type = RankedTensorType::get(fromVec, elemType);
+
+    // reduce-able
+    auto axis = builder.getI64IntegerAttr(i);
+    from = createOp<tosa::ReduceSumOp>(builder, type, from, axis);
+  }
+
+  auto attr = builder.getI64ArrayAttr(toShape);
+  // reshape
+  return createOp<tosa::ReshapeOp>(builder, to.getType(), from, attr);
 }
 
 }  // namespace mlir::autodiff
