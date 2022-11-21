@@ -2,7 +2,8 @@
 
 #include "Numslike.cpp"
 #include "Placeholder.cpp"
-#include "Rsqrt.cpp"
+#include "Scalar.cpp"
+#include "Shape.cpp"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir::autodiff {
@@ -12,7 +13,10 @@ class ADToCore : public impl::ADToCoreBase<ADToCore> {
     // clang-format off
     patterns.add<OneslikeToCore, 
                  ZeroslikeToCore, 
-                 PlaceholderToCore>(&getContext());
+                 PlaceholderToCore,
+                 BroadcastToCore,
+                 ReduceToCore,
+                 ScalarTensorToCore>(&getContext());
     // clang-format on
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }

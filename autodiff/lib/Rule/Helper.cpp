@@ -25,10 +25,17 @@ LogicalResult elementwiseMatchAndRewriteHelper(Operation *operation,
 
 linalg::GenericOp buildGeneric(Operation *operation, PatternRewriter &rewriter,
                                CalFn calFn) {
+  return buildGeneric(operation, operation->getOperands(),
+                      operation->getResults(), rewriter, calFn);
+}
+
+linalg::GenericOp buildGeneric(Operation *operation, ValueRange newOperands,
+                               ValueRange newResults, PatternRewriter &rewriter,
+                               CalFn calFn) {
   auto loc = operation->getLoc();
 
-  auto results = operation->getResults();
-  auto resultTy = operation->getResult(0).getType().dyn_cast<ShapedType>();
+  auto results = newResults;
+  auto resultTy = newResults[0].getType().dyn_cast<ShapedType>();
 
   if (!resultTy) return nullptr;
 
@@ -37,7 +44,7 @@ linalg::GenericOp buildGeneric(Operation *operation, PatternRewriter &rewriter,
   // Construct the indexing maps needed for linalg.generic ops.
   SmallVector<Type> bodyArgTypes;
 
-  for (Value in : operation->getOperands())
+  for (Value in : newOperands)
     bodyArgTypes.emplace_back(getElementTypeOrSelf(in.getType()));
 
   SmallVector<Type> opResultTypes;
@@ -46,7 +53,7 @@ linalg::GenericOp buildGeneric(Operation *operation, PatternRewriter &rewriter,
   SmallVector<Value> dynDims;
   dynDims.resize(results.front().getType().cast<ShapedType>().getRank());
 
-  for (auto arg : operation->getOperands()) {
+  for (auto arg : newOperands) {
     auto operandTy = arg.getType().cast<ShapedType>();
     for (int i = 0; i < operandTy.getRank(); i++) {
       if (operandTy.isDynamicDim(i) && !dynDims[i])
@@ -68,10 +75,10 @@ linalg::GenericOp buildGeneric(Operation *operation, PatternRewriter &rewriter,
 
   SmallVector<Value, 2> operands;
   SmallVector<AffineMap, 2> indexingMaps;
-  indexingMaps.reserve(operation->getNumOperands() + bodyResultTypes.size());
+  indexingMaps.reserve(newOperands.size() + bodyResultTypes.size());
 
   // Input indexing maps may be broadcasted.
-  for (Value operand : operation->getOperands()) {
+  for (Value operand : newOperands) {
     ShapedType type = operand.getType().cast<ShapedType>();
 
     if (type.getShape() == resultTy.getShape()) {
@@ -103,8 +110,7 @@ linalg::GenericOp buildGeneric(Operation *operation, PatternRewriter &rewriter,
         rewriter.getContext()));
   }
 
-  indexingMaps.append(operation->getNumResults(),
-                      rewriter.getMultiDimIdentityMap(rank));
+  indexingMaps.append(newResults.size(), rewriter.getMultiDimIdentityMap(rank));
 
   bool didEncounterError = false;
   auto linalgOp = rewriter.create<linalg::GenericOp>(

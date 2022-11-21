@@ -11,9 +11,13 @@ using CalFn =
 
 LogicalResult elementwiseMatchAndRewriteHelper(Operation *op,
                                                PatternRewriter &rewriter,
-                                               CalFn loopFn);
+                                               CalFn calFn);
 
 linalg::GenericOp buildGeneric(Operation *op, PatternRewriter &rewriter,
-                               CalFn loopFn);
+                               CalFn calFn);
+
+linalg::GenericOp buildGeneric(Operation *op, ValueRange newOperands,
+                               ValueRange newResults, PatternRewriter &rewriter,
+                               CalFn calFn);
 
 }  // namespace mlir::autodiff

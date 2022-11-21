@@ -76,9 +76,7 @@ Value getRelatedValue(Operation* op) {
   return op->getNumResults() == 1 ? op->getResult(0) : nullptr;
 }
 
-LogicalResult notNull(Value value) {
-  return value == nullptr ? failure() : success();
-}
+LogicalResult notNull(Value value) { return success(value != nullptr); }
 
 int64_t counter() {
   static int64_t index = 0;

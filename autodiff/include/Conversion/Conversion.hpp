@@ -2,7 +2,7 @@
 #define AD_CONVERSION_H
 
 #include "Conversion/ADToCore/ADToCore.hpp"
-#include "Conversion/ADToTosa/ADToTosa.hpp"
+#include "Conversion/GradAbstractToConcrete/GradAbstractToConcrete.hpp"
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "mlir/Conversion/TosaToLinalg/TosaToLinalg.h"
 

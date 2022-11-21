@@ -19,8 +19,7 @@ Value constantFloatTensor(OpBuilder& builder, Type tensorType, double value) {
   auto loc = builder.getUnknownLoc();
   auto elemType = tensorType.cast<TensorType>().getElementType();
   auto constant = constantFloat(builder, elemType, value);
-  auto valueType = RankedTensorType::get({1}, elemType);
-  return builder.create<tensor::FromElementsOp>(loc, valueType, constant);
+  return builder.create<tensor::FromElementsOp>(loc, tensorType, constant);
 }
 
 bool replaceWithValue(Operation* op, Type type, PatternRewriter& rewriter,
@@ -43,9 +42,8 @@ class OneslikeToCore : public OpRewritePattern<ad::OneslikeOp> {
   LogicalResult matchAndRewrite(ad::OneslikeOp oneslike,
                                 PatternRewriter& rewriter) const override {
     rewriter.setInsertionPointAfter(oneslike);
-    return replaceWithValue(oneslike, oneslike.getType(), rewriter, 1.0)
-               ? success()
-               : failure();
+    return success(
+        replaceWithValue(oneslike, oneslike.getType(), rewriter, 1.0));
   };
 };
 
@@ -55,9 +53,8 @@ class ZeroslikeToCore : public OpRewritePattern<ad::ZeroslikeOp> {
   LogicalResult matchAndRewrite(ad::ZeroslikeOp zeroslike,
                                 PatternRewriter& rewriter) const override {
     rewriter.setInsertionPointAfter(zeroslike);
-    return replaceWithValue(zeroslike, zeroslike.getType(), rewriter, 0.0)
-               ? success()
-               : failure();
+    return success(
+        replaceWithValue(zeroslike, zeroslike.getType(), rewriter, 0.0));
   };
 };
 

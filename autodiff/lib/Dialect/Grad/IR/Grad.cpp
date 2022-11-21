@@ -3,39 +3,74 @@
 #define GET_OP_CLASSES
 #include "Dialect/Grad/IR/Grad.cpp.inc"
 
-namespace mlir::autodiff::grad {
+namespace mlir {
+namespace OpTrait {
+namespace impl {
 
-bool isTypeLegal(Type input, Type grad) {
-  if (isa<FloatType>(input) && isa<FloatType>(grad)) {
-    return true;
-  }
+bool isTypeSame(Type a, Type b) {
+  if (isa<IntegerType>(a))
+    return isa<IntegerType>(b);
 
-  if (isa<IntegerType>(input) && isa<IntegerType>(grad)) {
-    return true;
-  }
+  else if (isa<FloatType>(a))
+    return isa<FloatType>(b);
 
-  if (isa<TensorType>(input) && isa<TensorType>(grad)) {
-    return true;
-  }
+  // shaped type
+  auto aShapedType = a.cast<ShapedType>();
+  auto bShapedType = b.cast<ShapedType>();
 
-  return false;
+  auto aElemType = aShapedType.getElementType();
+  auto bElemType = bShapedType.getElementType();
+
+  auto aShape = aShapedType.getShape();
+  auto bShape = bShapedType.getShape();
+
+  return aElemType == bElemType && aShape == bShape;
 }
 
-bool isOpTypeLegal(Operation *op) {
-  assert(3 == op->getNumOperands() && 2 == op->getNumResults() &&
-         "Operation is not grad binary op");
-
-  auto lhs = op->getOperand(0).getType();
-  auto dLhs = op->getResult(0).getType();
-
-  auto rhs = op->getOperand(1).getType();
-  auto dRhs = op->getResult(1).getType();
-
-  return isTypeLegal(lhs, dLhs) && isTypeLegal(rhs, dRhs);
+void prettyNotSameInputAndDerivativeType(Operation* op, Value input,
+                                         Value derivative) {
+  op->emitOpError() << "Types of `" << input << "` and `" << derivative
+                    << "` are not the same";
 }
 
-LogicalResult AddOp::verify() {
-  return isOpTypeLegal(*this) ? success() : failure();
+LogicalResult verifySameInputAndDerivativeType(Operation* op) {
+  auto inputs = op->getNumOperands();
+  auto outputs = op->getNumResults();
+
+  if (2 == inputs && 1 == outputs) {  // grad unary op
+    auto x = op->getOperand(0);
+    auto dx = op->getResult(0);
+
+    if (!isTypeSame(x.getType(), dx.getType())) {
+      prettyNotSameInputAndDerivativeType(op, x, dx);
+      return failure();
+    }
+
+    return success();
+  } else if (3 == inputs && 2 == outputs) {  // grad binary op
+    auto lhs = op->getOperand(0);
+    auto dlhs = op->getResult(0);
+
+    auto rhs = op->getOperand(1);
+    auto drhs = op->getResult(1);
+
+    if (!isTypeSame(lhs.getType(), dlhs.getType())) {
+      prettyNotSameInputAndDerivativeType(op, lhs, dlhs);
+      return failure();
+    }
+
+    if (!isTypeSame(rhs.getType(), drhs.getType())) {
+      prettyNotSameInputAndDerivativeType(op, rhs, drhs);
+      return failure();
+    }
+
+    return success();
+  }
+
+  op->emitOpError("Operation is not from grad dialect");
+  return failure();
 }
 
-}  // namespace mlir::autodiff::grad
+}  // namespace impl
+}  // namespace OpTrait
+}  // namespace mlir

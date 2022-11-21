@@ -73,6 +73,28 @@ Value rhsCalFn(Operation* op, ValueRange args, ArrayRef<Type> resultTypes,
   return binaryCalFn<GradTy>(op, args, resultTypes, rewriter, args[1]);
 }
 
+template <typename OpTy, typename LhsTy, typename RhsTy>
+class BinaryToCore : public OpRewritePattern<OpTy> {
+  using OpRewritePattern<OpTy>::OpRewritePattern;
+
+  LogicalResult matchAndRewrite(OpTy op,
+                                PatternRewriter& rewriter) const override {
+    auto dlhs =
+        createOp<LhsTy>(rewriter, op.getLhs().getType(), op.getOperands());
+    auto drhs =
+        createOp<RhsTy>(rewriter, op.getRhs().getType(), op.getOperands());
+
+    if (!dlhs || !drhs) {
+      return failure();
+    }
+
+    rewriter.replaceOp(op, {dlhs, drhs});
+    return success();
+  }
+};
+
+using AddToCore = BinaryToCore<grad::AddOp, grad::AddLhsOp, grad::AddRhsOp>;
+
 }  // namespace mlir::autodiff
 
 #endif  // GRADTOCORE_REWRITER_H

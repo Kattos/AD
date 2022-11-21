@@ -26,17 +26,38 @@ class AD_Op<string mnemonic, list<Trait> traits = []> : Op<AD_Dialect, mnemonic,
 //===----------------------------------------------------------------------===//
 
 def AD_OneslikeOp : AD_Op<"oneslike", [Pure, SameOperandsAndResultType]> {
-    let summary = "Creates a tensor of all ones that has the same shape as the input";
+    let summary = "Create a tensor of all ones that has the same shape as the input";
 
     let arguments = (ins AnyType:$input);
     let results = (outs AnyType:$output);
 }
 
 def AD_ZeroslikeOp : AD_Op<"zeroslike", [Pure, SameOperandsAndResultType]> {
-    let summary = "Creates a tensor of all zeros that has the same shape as the input";
+    let summary = "Create a tensor of all zeros that has the same shape as the input";
 
     let arguments = (ins AnyType:$input);
     let results = (outs AnyType:$output);
+}
+
+def ResultsAreScalarTensorLike : NativeOpTrait<"ResultsAreScalarTensorLike">;
+
+def AD_ScalarTensorOp : AD_Op<"scalar_tensor", [ResultsAreScalarTensorLike]> {
+    let summary = "Create a tensor of input scalar";
+
+    let arguments = (ins AnyTypeOf<[AnyInteger, AnyFloat]>:$input);
+    let results = (outs AnyTensor:$output);
+}
+
+def SameToAndResultType : NativeOpTrait<"SameToAndResultType">;
+
+def AD_BroadcastOp : AD_Op<"broadcast", [SameToAndResultType, SameOperandsElementType]> {
+    let arguments = (ins AnyTensor:$from, AnyTensor:$to);
+    let results = (outs AnyType:$tensor);
+}
+
+def AD_ReduceOp : AD_Op<"reduce", [SameToAndResultType, SameOperandsElementType]> {
+    let arguments = (ins AnyTensor:$from, AnyTensor:$to);
+    let results = (outs AnyType:$tensor);
 }
 
 // TODO: remove `from`, `to` and `return` if they are useless

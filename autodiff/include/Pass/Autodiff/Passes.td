@@ -19,9 +19,9 @@ def ExperimentalPass : Pass<"ad-experimental"> {
     let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::scf::SCFDialect", "mlir::tosa::TosaDialect"];
 }
 
-def GradPass : Pass<"ad-grad"> {
+def GenGradPass : Pass<"ad-gen-grad"> {
     let summary = "Generate gradients using `grad` ops";
-    let constructor = "mlir::autodiff::createADGradPass()";
+    let constructor = "mlir::autodiff::createADGenGradPass()";
 
     let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::autodiff::grad::GradDialect"];
 }

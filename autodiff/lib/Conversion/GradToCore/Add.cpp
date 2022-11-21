@@ -3,31 +3,6 @@
 
 namespace mlir::autodiff {
 
-// cal binary grad in unary way
-class AddToCore : public OpRewritePattern<grad::AddOp> {
-  using OpRewritePattern<grad::AddOp>::OpRewritePattern;
-
-  LogicalResult matchAndRewrite(grad::AddOp add,
-                                PatternRewriter& rewriter) const override {
-    // cal grad of binary op in an unary way
-    auto dout = add.getDout();
-    auto lhs = add.getLhs();
-    auto lhsType = lhs.getType();
-    auto rhs = add.getRhs();
-    auto rhsType = rhs.getType();
-
-    auto dlhs = createOp<grad::AddLhsOp>(rewriter, lhsType, lhs, rhs, dout);
-    auto drhs = createOp<grad::AddRhsOp>(rewriter, rhsType, rhs, rhs, dout);
-
-    if (!dlhs || !rhs) {
-      return failure();
-    }
-
-    rewriter.replaceOp(add, {dlhs, drhs});
-    return success();
-  }
-};
-
 class AddLhsToCore : public OpRewritePattern<grad::AddLhsOp> {
   using OpRewritePattern<grad::AddLhsOp>::OpRewritePattern;
 
@@ -63,7 +38,7 @@ class AddLhsToCore : public OpRewritePattern<grad::AddLhsOp> {
                                       rewriter);
 
     else
-      value = rhsCalFn<arith::AddFOp>(lhsOp, lhsOp.getOperands(), resultType,
+      value = lhsCalFn<arith::AddFOp>(lhsOp, lhsOp.getOperands(), resultType,
                                       rewriter);
 
     if (!value) return failure();
@@ -114,6 +89,36 @@ class AddRhsToCore : public OpRewritePattern<grad::AddRhsOp> {
     if (!value) return failure();
 
     rewriter.replaceOp(rhsOp, value);
+    return success();
+  }
+};
+
+Value gradAdd(OpBuilder& builder, Value which, ValueRange operands,
+              ValueRange results) {
+  auto type = which.getType();
+  if (isa<IntegerType>(type)) {
+  } else if (isa<FloatType>(type)) {
+  } else {
+    auto elemType = type.cast<ShapedType>().getElementType();
+  }
+  return nullptr;
+}
+
+class AnotherAddToCore : public OpRewritePattern<grad::AddOp> {
+  using OpRewritePattern<grad::AddOp>::OpRewritePattern;
+
+  LogicalResult matchAndRewrite(grad::AddOp add,
+                                PatternRewriter& rewriter) const override {
+    auto dlhs = gradAdd(rewriter, add->getOperand(0), add->getOperands(),
+                        add->getResult(0));
+    auto drhs = gradAdd(rewriter, add->getOperand(1), add->getOperands(),
+                        add->getResult(1));
+
+    if (!dlhs || !drhs) {
+      return failure();
+    }
+
+    rewriter.replaceOp(add, {dlhs, drhs});
     return success();
   }
 };

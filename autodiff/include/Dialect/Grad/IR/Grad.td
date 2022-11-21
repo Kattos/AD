@@ -12,23 +12,30 @@ def Grad_Dialect : Dialect {
 
 class Grad_Op<string mnemonic, list<Trait> traits = []> : Op<Grad_Dialect, mnemonic, traits>;
 
+def SameInputAndDerivativeType : NativeOpTrait<"SameInputAndDerivativeType">;
+
 class Grad_UnaryOp<string mnemonic, list<Trait> traits=[Pure, SameOperandsAndResultType]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$x, AnyType:$dout);
     let results = (outs AnyType:$dx);
 }
 
-class Grad_BinaryOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
+def Grad_AbstractUnaryOp : Grad_UnaryOp<"abstract_unary"> {
+    let arguments = (ins AnyType:$x, AnyType:$dout, StrAttr:$op);
+}
+
+class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
     let results = (outs AnyType:$dlhs, AnyType:$drhs);
+}
 
-    let hasVerifier = 1;
+def Grad_AbstractBinaryOp : Grad_BinaryOp<"abstract_binary"> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout, StrAttr:$op);
 }
 
 class Grad_BinaryLhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
     let results = (outs AnyType:$dlhs);
 }
-
 
 class Grad_BinaryRhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
