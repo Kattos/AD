@@ -1,6 +1,7 @@
 #ifndef AD_CONVERSION_GRADTOCORE_H
 #define AD_CONVERSION_GRADTOCORE_H
 
+#include "Dialect/AD/IR/AD.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Dialect/Grad/IR/Grad.hpp"
 #include "Dialect/Grad/IR/GradDialect.hpp"
@@ -18,6 +19,25 @@ namespace mlir::autodiff {
 #include "Conversion/Passes.hpp.inc"
 
 std::unique_ptr<Pass> createGradToCore();
+
+namespace grad {
+namespace to_core {
+
+Value add(PatternRewriter& rewriter, Value lhs, Value rhs);
+Value mul(PatternRewriter& rewriter, Value lhs, Value rhs);
+Value negate(PatternRewriter& rewriter, Value tensor);
+Value exp(PatternRewriter& rewriter, Value tensor);
+Value reciprocal(PatternRewriter& rewriter, Value tensor);
+
+Value drsqrt(PatternRewriter& rewriter, Value tensor);
+
+inline void LLVM_ATTRIBUTE_UNUSED
+populateWithGenerated(::mlir::RewritePatternSet& patterns);
+
+#include "Conversion/GradToCore/GradToCore.hpp.inc"
+
+}  // namespace to_core
+}  // namespace grad
 
 }  // namespace mlir::autodiff
 

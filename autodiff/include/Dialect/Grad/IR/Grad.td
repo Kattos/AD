@@ -23,25 +23,6 @@ def Grad_AbstractUnaryOp : Grad_UnaryOp<"abstract_unary"> {
     let arguments = (ins AnyType:$x, AnyType:$dout, StrAttr:$op);
 }
 
-class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
-    let results = (outs AnyType:$dlhs, AnyType:$drhs);
-}
-
-def Grad_AbstractBinaryOp : Grad_BinaryOp<"abstract_binary"> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout, StrAttr:$op);
-}
-
-class Grad_BinaryLhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
-    let results = (outs AnyType:$dlhs);
-}
-
-class Grad_BinaryRhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
-    let results = (outs AnyType:$drhs);
-}
-
 def Grad_AbsOp : Grad_UnaryOp<"abs">;
 
 def Grad_ExpOp : Grad_UnaryOp<"exp">;
@@ -62,7 +43,32 @@ def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal">;
 
 def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid">;
 
+class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
+    let results = (outs AnyType:$dlhs, AnyType:$drhs);
+}
+
+def Grad_AbstractBinaryOp : Grad_BinaryOp<"abstract_binary"> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout, StrAttr:$op);
+}
+
 def Grad_AddOp : Grad_BinaryOp<"add">;
+
+def Grad_SubOp : Grad_BinaryOp<"sub">;
+
+def Grad_MulOp : Grad_BinaryOp<"mul">;
+
+// TODO: remove following ops
+
+class Grad_BinaryLhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
+    let results = (outs AnyType:$dlhs);
+}
+
+class Grad_BinaryRhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
+    let results = (outs AnyType:$drhs);
+}
 
 def Grad_AddLhsOp : Grad_BinaryLhsOp<"add_lhs">;
 

@@ -1,4 +1,5 @@
 #include "Conversion/ADToCore/ADToCore.hpp"
+#include "Conversion/GradAbstractToConcrete/GradAbstractToConcrete.hpp"
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Bufferization/Transforms/Passes.h"
@@ -10,17 +11,10 @@ namespace mlir::autodiff {
 
 void buildAutodiffPipeline(OpPassManager& passManager) {
   // TODO: register real autodiff before all
-  // passManager.addNestedPass<func::FuncOp>(createReverseAutodiffPass());
-
-  // convert customized ops to core ops
+  passManager.addNestedPass<func::FuncOp>(createADGenGradPass());
+  passManager.addNestedPass<func::FuncOp>(createGradAbstractToConcrete());
   passManager.addNestedPass<func::FuncOp>(createGradToCore());
   passManager.addNestedPass<func::FuncOp>(createADToCore());
-
-  // convert iree-illegal ops to iree-legal ops
-  passManager.addNestedPass<func::FuncOp>(
-      bufferization::createEmptyTensorToAllocTensorPass());
-  passManager.addNestedPass<func::FuncOp>(
-      bufferization::createBufferizationBufferizePass());
 }
 
 void registerAutodiffPipeline() {

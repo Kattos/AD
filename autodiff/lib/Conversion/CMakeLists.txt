@@ -6,4 +6,7 @@ add_llvm_library(ADConversion
     DEPENDS
     ADConversionGen
     ADRules
+    ADToCoreGen
+    GradAbstractToConcreteGen
+    GradToCoreGen
 )

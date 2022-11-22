@@ -43,10 +43,10 @@ class AbstractUnaryToConcrete : public OpRewritePattern<grad::AbstractUnaryOp> {
       concrete = lower<grad::ClampOp>(unary, rewriter);
 
     else if (op == tosa::NegateOp::getOperationName())
-      concrete = lower<grad::ClampOp>(unary, rewriter);
+      concrete = lower<grad::NegateOp>(unary, rewriter);
 
     else if (op == tosa::ReciprocalOp::getOperationName())
-      concrete = lower<grad::ClampOp>(unary, rewriter);
+      concrete = lower<grad::ReciprocalOp>(unary, rewriter);
 
     else if (op == tosa::SigmoidOp::getOperationName())
       concrete = lower<grad::SigmoidOp>(unary, rewriter);

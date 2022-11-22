@@ -93,36 +93,6 @@ class AddRhsToCore : public OpRewritePattern<grad::AddRhsOp> {
   }
 };
 
-Value gradAdd(OpBuilder& builder, Value which, ValueRange operands,
-              ValueRange results) {
-  auto type = which.getType();
-  if (isa<IntegerType>(type)) {
-  } else if (isa<FloatType>(type)) {
-  } else {
-    auto elemType = type.cast<ShapedType>().getElementType();
-  }
-  return nullptr;
-}
-
-class AnotherAddToCore : public OpRewritePattern<grad::AddOp> {
-  using OpRewritePattern<grad::AddOp>::OpRewritePattern;
-
-  LogicalResult matchAndRewrite(grad::AddOp add,
-                                PatternRewriter& rewriter) const override {
-    auto dlhs = gradAdd(rewriter, add->getOperand(0), add->getOperands(),
-                        add->getResult(0));
-    auto drhs = gradAdd(rewriter, add->getOperand(1), add->getOperands(),
-                        add->getResult(1));
-
-    if (!dlhs || !drhs) {
-      return failure();
-    }
-
-    rewriter.replaceOp(add, {dlhs, drhs});
-    return success();
-  }
-};
-
 void populateAddToCore(RewritePatternSet& patterns) {
   patterns.add<AddToCore, AddLhsToCore, AddRhsToCore>(patterns.getContext());
 }

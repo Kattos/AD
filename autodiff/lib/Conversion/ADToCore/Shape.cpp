@@ -30,10 +30,8 @@ class BroadcastToCore : public OpRewritePattern<ad::BroadcastOp> {
       return success();
     }
 
-    auto attr = rewriter.getI64ArrayAttr(to.getType().getShape());
-    auto reshape =
-        createOp<tosa::ReshapeOp>(rewriter, to.getType(), from, attr);
-
+    auto zero = zeros(rewriter, to);
+    auto reshape = createOp<tosa::AddOp>(rewriter, to.getType(), from, zero);
     rewriter.replaceOp(broadcast, reshape.getResult());
     return success();
   }

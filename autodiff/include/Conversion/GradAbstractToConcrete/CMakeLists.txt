@@ -1,0 +1,3 @@
+set(LLVM_TARGET_DEFINITIONS GradAbstractToConcrete.td)
+mlir_tablegen(GradAbstractToConcrete.hpp.inc -gen-rewriters -name GradAbstractToConcrete)
+add_public_tablegen_target(GradAbstractToConcreteGen)

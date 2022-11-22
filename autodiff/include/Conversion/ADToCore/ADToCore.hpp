@@ -11,7 +11,8 @@
 #include "mlir/IR/DialectRegistry.h"
 #include "mlir/Pass/Pass.h"
 
-namespace mlir::autodiff {
+namespace mlir {
+namespace autodiff {
 
 #define GEN_PASS_DECL_ADTOCORE
 #define GEN_PASS_DEF_ADTOCORE
@@ -19,6 +20,17 @@ namespace mlir::autodiff {
 
 std::unique_ptr<Pass> createADToCore();
 
-}  // namespace mlir::autodiff
+namespace ad {
+
+Value buildScalarTensor(PatternRewriter& rewriter, Value input, Value output);
+
+inline void LLVM_ATTRIBUTE_UNUSED
+populateWithGenerated(::mlir::RewritePatternSet& patterns);
+
+#include "Conversion/ADToCore/ADToCore.hpp.inc"
+
+}  // namespace ad
+}  // namespace autodiff
+}  // namespace mlir
 
 #endif  // AD_CONVERSION_ADTOCORE_H

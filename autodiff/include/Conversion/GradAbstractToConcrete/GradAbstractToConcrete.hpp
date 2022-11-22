@@ -4,6 +4,7 @@
 #include "Dialect/Grad/IR/Grad.hpp"
 #include "Dialect/Grad/IR/GradDialect.hpp"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
 
 namespace mlir {
@@ -15,6 +16,18 @@ namespace autodiff {
 
 std::unique_ptr<Pass> createGradAbstractToConcrete();
 
+namespace grad {
+namespace to_concrete {
+
+Value toClamp(PatternRewriter& rewriter, Value unary);
+
+inline void LLVM_ATTRIBUTE_UNUSED
+populateWithGenerated(::mlir::RewritePatternSet& patterns);
+
+#include "Conversion/GradAbstractToConcrete/GradAbstractToConcrete.hpp.inc"
+
+}  // namespace to_concrete
+}  // namespace grad
 }  // namespace autodiff
 }  // namespace mlir
 

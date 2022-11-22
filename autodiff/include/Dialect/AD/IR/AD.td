@@ -48,16 +48,35 @@ def AD_ScalarTensorOp : AD_Op<"scalar_tensor", [ResultsAreScalarTensorLike]> {
     let results = (outs AnyTensor:$output);
 }
 
+def AD_ToTensorOp : AD_Op<"to_tensor"> {
+    let summary = "Create a tensor of any input";
+
+    let arguments = (ins AnyType:$input);
+    let results = (outs AnyTensor:$output);
+
+    let builders = [
+        OpBuilder<(ins "Value":$input)>
+    ];
+}
+
 def SameToAndResultType : NativeOpTrait<"SameToAndResultType">;
 
 def AD_BroadcastOp : AD_Op<"broadcast", [SameToAndResultType, SameOperandsElementType]> {
     let arguments = (ins AnyTensor:$from, AnyTensor:$to);
     let results = (outs AnyType:$tensor);
+
+    let builders = [
+        OpBuilder<(ins "Value":$from, "Value":$to)>
+    ];
 }
 
 def AD_ReduceOp : AD_Op<"reduce", [SameToAndResultType, SameOperandsElementType]> {
     let arguments = (ins AnyTensor:$from, AnyTensor:$to);
     let results = (outs AnyType:$tensor);
+
+    let builders = [
+        OpBuilder<(ins "Value":$from, "Value":$to)>
+    ];
 }
 
 // TODO: remove `from`, `to` and `return` if they are useless

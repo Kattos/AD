@@ -1,5 +1,7 @@
 #include "Dialect/AD/IR/AD.hpp"
 
+#include "mlir/IR/TypeUtilities.h"
+
 #define GET_OP_CLASSES
 #include "Dialect/AD/IR/AD.cpp.inc"
 
@@ -42,4 +44,27 @@ LogicalResult verifySameToAndResultType(Operation* op) {
 
 }  // namespace impl
 }  // namespace OpTrait
+
+namespace autodiff {
+namespace ad {
+
+void BroadcastOp::build(OpBuilder& odsBuilder, OperationState& odsState,
+                        Value from, Value to) {
+  return BroadcastOp::build(odsBuilder, odsState, to.getType(), from, to);
+}
+
+void ToTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
+                       Value input) {
+  auto inputType = input.getType();
+
+  if (isa<TensorType>(inputType)) {
+    return build(odsBuilder, odsState, inputType, input);
+  }
+
+  auto type = RankedTensorType::get({}, getElementTypeOrSelf(inputType));
+  return build(odsBuilder, odsState, type, input);
+}
+
+}  // namespace ad
+}  // namespace autodiff
 }  // namespace mlir
