@@ -21,7 +21,7 @@ namespace mlir::autodiff {
 std::unique_ptr<Pass> createGradToCore();
 
 namespace grad {
-namespace to_core {
+namespace core {
 
 Value add(PatternRewriter& rewriter, Value lhs, Value rhs);
 Value mul(PatternRewriter& rewriter, Value lhs, Value rhs);
@@ -30,13 +30,19 @@ Value exp(PatternRewriter& rewriter, Value tensor);
 Value reciprocal(PatternRewriter& rewriter, Value tensor);
 
 Value drsqrt(PatternRewriter& rewriter, Value tensor);
+Value dabs(PatternRewriter& rewriter, Value tensor);
+Value dGreaterEqual(PatternRewriter& rewriter, Value first, Value second);
+Value intClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
+                     Attribute max);
+Value floatClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
+                       Attribute max);
 
 inline void LLVM_ATTRIBUTE_UNUSED
 populateWithGenerated(::mlir::RewritePatternSet& patterns);
 
 #include "Conversion/GradToCore/GradToCore.hpp.inc"
 
-}  // namespace to_core
+}  // namespace core
 }  // namespace grad
 
 }  // namespace mlir::autodiff

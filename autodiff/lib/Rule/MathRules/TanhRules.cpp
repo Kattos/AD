@@ -2,7 +2,6 @@
 
 namespace mlir::autodiff {
 
-// TODO: solve precision problem
 template <>
 Value MathTanhRule::getInputDerivative(OpBuilder& builder, math::TanhOp tanh) {
   // \derivative{tanh(x)}{x} = \frac{4}{(e^x + e^{-x})^2}

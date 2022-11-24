@@ -1,14 +1,13 @@
 #include "Conversion/GradAbstractToConcrete/GradAbstractToConcrete.hpp"
 
-#include "AbstractBinary.cpp"
-#include "AbstractUnary.cpp"
+#include "Rule/Utils.hpp"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir {
 namespace autodiff {
 namespace grad {
-namespace to_concrete {
+namespace concrete {
 
 Value toClamp(PatternRewriter& rewriter, Value unary) {
   auto abstract = unary.getDefiningOp<grad::AbstractUnaryOp>();
@@ -25,14 +24,14 @@ Value toClamp(PatternRewriter& rewriter, Value unary) {
   return createOp<grad::ClampOp>(rewriter, resultTypes, operands, attrs);
 }
 
-}  // namespace to_concrete
+}  // namespace concrete
 }  // namespace grad
 
 class GradAbstractToConcrete
     : public impl::GradAbstractToConcreteBase<GradAbstractToConcrete> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
-    grad::to_concrete::populateWithGenerated(patterns);
+    grad::concrete::populateWithGenerated(patterns);
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }
 };

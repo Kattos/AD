@@ -8,6 +8,7 @@
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/MLProgram/IR/MLProgram.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
@@ -38,6 +39,7 @@ void registerAllDialects(DialectRegistry &registry) {
   registry.insert<linalg::LinalgDialect>();
   registry.insert<tensor::TensorDialect>();
   registry.insert<scf::SCFDialect>();
+  registry.insert<ml_program::MLProgramDialect>();
 
   registry.insert<ad::ADDialect>();
   registry.insert<grad::GradDialect>();

@@ -5,8 +5,7 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "Debug")
 
-set(CMAKE_C_FLAGS "-fuse-ld=lld")
-set(CMAKE_CXX_FLAGS "-fuse-ld=lld")
+add_link_options("-fuse-ld=lld")
 
 project(autodiff)
 set(CMAKE_C_STANDARD 11)

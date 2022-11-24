@@ -17,7 +17,7 @@ namespace autodiff {
 std::unique_ptr<Pass> createGradAbstractToConcrete();
 
 namespace grad {
-namespace to_concrete {
+namespace concrete {
 
 Value toClamp(PatternRewriter& rewriter, Value unary);
 
@@ -26,7 +26,7 @@ populateWithGenerated(::mlir::RewritePatternSet& patterns);
 
 #include "Conversion/GradAbstractToConcrete/GradAbstractToConcrete.hpp.inc"
 
-}  // namespace to_concrete
+}  // namespace concrete
 }  // namespace grad
 }  // namespace autodiff
 }  // namespace mlir

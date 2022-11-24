@@ -12,8 +12,6 @@ namespace mlir {
 namespace OpTrait {
 
 namespace impl {
-
-// TODO: implement this function
 LogicalResult verifySameInputAndDerivativeType(Operation* op);
 }  // namespace impl
 

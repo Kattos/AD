@@ -58,6 +58,10 @@ def Grad_SubOp : Grad_BinaryOp<"sub">;
 
 def Grad_MulOp : Grad_BinaryOp<"mul">;
 
+def Grad_MaximumOp : Grad_BinaryOp<"maximum">;
+
+def Grad_MinimumOp : Grad_BinaryOp<"minimum">;
+
 // TODO: remove following ops
 
 class Grad_BinaryLhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {

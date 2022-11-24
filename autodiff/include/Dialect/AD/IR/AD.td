@@ -45,14 +45,20 @@ def AD_ScalarTensorOp : AD_Op<"scalar_tensor", [ResultsAreScalarTensorLike]> {
     let summary = "Create a tensor of input scalar";
 
     let arguments = (ins AnyTypeOf<[AnyInteger, AnyFloat]>:$input);
-    let results = (outs AnyTensor:$output);
+    let results = (outs AnyTensor:$tensor);
+
+    let builders = [
+        OpBuilder<(ins "Value":$input)>,
+        OpBuilder<(ins "Type":$type, "int64_t":$literal)>,
+        OpBuilder<(ins "Type":$type, "double":$literal)>
+    ];
 }
 
 def AD_ToTensorOp : AD_Op<"to_tensor"> {
     let summary = "Create a tensor of any input";
 
     let arguments = (ins AnyType:$input);
-    let results = (outs AnyTensor:$output);
+    let results = (outs AnyTensor:$tensor);
 
     let builders = [
         OpBuilder<(ins "Value":$input)>

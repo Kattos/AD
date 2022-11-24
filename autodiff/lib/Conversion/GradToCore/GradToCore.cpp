@@ -1,7 +1,5 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 
-#include "Abs.cpp"
-#include "Clamp.cpp"
 #include "GradToCoreImpl.cpp"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
@@ -11,11 +9,7 @@ namespace autodiff {
 class GradToCore : public impl::GradToCoreBase<GradToCore> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
-    // clang-format off
-    patterns.add<AbsToCore, 
-                 ClampToCore>(&getContext());
-    // clang-format on
-    grad::to_core::populateWithGenerated(patterns);
+    grad::core::populateWithGenerated(patterns);
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }
 };

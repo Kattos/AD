@@ -10,7 +10,6 @@
 namespace mlir::autodiff {
 
 void buildAutodiffPipeline(OpPassManager& passManager) {
-  // TODO: register real autodiff before all
   passManager.addNestedPass<func::FuncOp>(createADGenGradPass());
   passManager.addNestedPass<func::FuncOp>(createGradAbstractToConcrete());
   passManager.addNestedPass<func::FuncOp>(createGradToCore());

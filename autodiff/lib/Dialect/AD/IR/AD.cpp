@@ -1,5 +1,6 @@
 #include "Dialect/AD/IR/AD.hpp"
 
+#include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/IR/TypeUtilities.h"
 
 #define GET_OP_CLASSES
@@ -61,8 +62,42 @@ void ToTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
     return build(odsBuilder, odsState, inputType, input);
   }
 
+  ArrayRef<int64_t> shape;
+
+  if (auto shapedType = inputType.dyn_cast<ShapedType>()) {
+    shape = shapedType.getShape();
+  } else {
+    shape = {};
+  }
+
+  auto type = RankedTensorType::get(shape, getElementTypeOrSelf(inputType));
+  return build(odsBuilder, odsState, type, input);
+}
+
+void ScalarTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
+                           Value input) {
+  auto inputType = input.getType();
+  assert(!isa<ShapedType>(inputType) && "Invalid input type");
+
   auto type = RankedTensorType::get({}, getElementTypeOrSelf(inputType));
   return build(odsBuilder, odsState, type, input);
+}
+
+void ScalarTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
+                           Type type, int64_t literal) {
+  auto attr = odsBuilder.getIntegerAttr(type, literal);
+
+  auto value =
+      odsBuilder.create<arith::ConstantOp>(odsBuilder.getUnknownLoc(), attr);
+  return build(odsBuilder, odsState, value);
+}
+
+void ScalarTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
+                           Type type, double literal) {
+  auto attr = odsBuilder.getFloatAttr(type, literal);
+  auto value =
+      odsBuilder.create<arith::ConstantOp>(odsBuilder.getUnknownLoc(), attr);
+  return build(odsBuilder, odsState, value);
 }
 
 }  // namespace ad

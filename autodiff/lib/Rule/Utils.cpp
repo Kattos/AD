@@ -114,7 +114,6 @@ Value reduce(OpBuilder& builder, Value from, Value to) {
 
     assert(toDim == 1 && "Cannot reduce along non-singleton dimension");
 
-    // TODO: whether to support memref
     fromVec[i] = 1;
     auto type = RankedTensorType::get(fromVec, elemType);
 
