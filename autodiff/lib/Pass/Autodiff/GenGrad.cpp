@@ -66,11 +66,17 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
     OpBuilder builder(&getContext());
 
     getOperation()->walk([&](func::FuncOp func) {
+      auto forwardInputs = func.getArguments();
+
+      auto returnOp = &*func.rbegin()->rbegin();
+      auto forwardOutputs = returnOp->getOperands();
+      builder.setInsertionPoint(returnOp);
+
       // replace arguments with placeholders
-      for (auto argument : func.getArguments()) {
-        builder.setInsertionPointAfterValue(argument);
-        auto placeholder = createOp<ad::PlaceholderOp>(builder, argument);
-        argument.replaceAllUsesExcept(placeholder, placeholder);
+      for (auto input : forwardInputs) {
+        builder.setInsertionPointAfterValue(input);
+        auto placeholder = createOp<ad::PlaceholderOp>(builder, input);
+        input.replaceAllUsesExcept(placeholder, placeholder);
 
         // set requires_grad flag
         setGraphAttr(builder, placeholder);
@@ -86,34 +92,21 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       });
 
       // backprop
-      auto returnOp = &*func.rbegin()->rbegin();
-      auto outputs = returnOp->getOperands();
-      builder.setInsertionPoint(returnOp);
-
-      for (auto output : outputs) {
+      for (auto output : forwardOutputs) {
         auto op = getRelatedOperation(output);
         if (!op || !op->hasAttr(REQGRAD)) {
           continue;
         }
 
-        auto dout = ones(builder, output);
+        auto index = func.getNumArguments();
+        func.insertArgument(index, output.getType(), {}, func->getLoc());
+        auto dout = func.getArgument(index);
         backprop(builder, op, dout);
       }
 
-      // update function signature
-      auto symName = func.getSymName();
-      auto newName = ("diff_" + symName).str();
-      func.setSymName(newName);
-
-      auto argsType = func.getArgumentTypes();
-      auto newType = builder.getFunctionType(argsType, argsType);
-      func.setFunctionType(newType);
-
       // update return values
-      returnOp->eraseOperands(0, returnOp->getNumOperands());
-
       SmallVector<Value> returnValues;
-      returnValues.resize(func.getNumArguments());
+      returnValues.resize(forwardInputs.size());
 
       func.getBody().walk([&](ad::PlaceholderOp op) {
         auto argIndex = op.getInput().cast<BlockArgument>().getArgNumber();
@@ -121,7 +114,17 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
         returnValues[argIndex] = cache[cacheIndex];
       });
 
-      returnOp->setOperands(returnValues);
+      returnOp->insertOperands(returnOp->getNumOperands(), returnValues);
+
+      // update function signature
+      auto symName = func.getSymName();
+      auto newName = ("diff_" + symName).str();
+      func.setSymName(newName);
+
+      auto argsType = func.getArgumentTypes();
+      auto newType =
+          builder.getFunctionType(argsType, returnOp->getOperandTypes());
+      func.setFunctionType(newType);
     });
   }
 };
