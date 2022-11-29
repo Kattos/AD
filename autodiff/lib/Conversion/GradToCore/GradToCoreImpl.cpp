@@ -31,6 +31,18 @@ Value reciprocal(PatternRewriter& rewriter, Value tensor) {
   return createOp<tosa::ReciprocalOp>(rewriter, tensor.getType(), tensor);
 }
 
+Value oneslike(PatternRewriter& rewriter, Value tensor) {
+  return createOp<ad::OneslikeOp>(rewriter, tensor);
+}
+
+Value broadcast(PatternRewriter& rewriter, Value from, Value to) {
+  return createOp<ad::BroadcastOp>(rewriter, from, to);
+}
+
+Value reduce(PatternRewriter& rewriter, Value from, Value to) {
+  return createOp<ad::ReduceOp>(rewriter, from, to);
+}
+
 Value drsqrt(PatternRewriter& rewriter, Value tensor) {
   auto type = getElementTypeOrSelf(tensor);
 

@@ -43,6 +43,9 @@ def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal">;
 
 def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid">;
 
+// concern on input only
+def Grad_TransposeOp : Grad_UnaryOp<"transpose">;
+
 class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
     let results = (outs AnyType:$dlhs, AnyType:$drhs);
@@ -62,20 +65,6 @@ def Grad_MaximumOp : Grad_BinaryOp<"maximum">;
 
 def Grad_MinimumOp : Grad_BinaryOp<"minimum">;
 
-// TODO: remove following ops
-
-class Grad_BinaryLhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
-    let results = (outs AnyType:$dlhs);
-}
-
-class Grad_BinaryRhsOp<string mnemonic, list<Trait> traits = []> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
-    let results = (outs AnyType:$drhs);
-}
-
-def Grad_AddLhsOp : Grad_BinaryLhsOp<"add_lhs">;
-
-def Grad_AddRhsOp : Grad_BinaryRhsOp<"add_rhs">;
+def Grad_PowOp : Grad_BinaryOp<"pow">;
 
 #endif // GRAD_OPS

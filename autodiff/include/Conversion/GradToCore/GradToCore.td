@@ -13,6 +13,10 @@ def NEGATE : NativeCodeCall<"negate($_builder, $0)">;
 def EXP : NativeCodeCall<"exp($_builder, $0)">;
 def RECIPROCAL : NativeCodeCall<"reciprocal($_builder, $0)">;
 
+def ONESLIKE : NativeCodeCall<"oneslike($_builder, $0)">;
+def BROADCAST : NativeCodeCall<"broadcast($_builder, $0, $1)">;
+def REDUCE : NativeCodeCall<"reduce($_builder, $0, $1)">;
+
 // alias to simplify coding
 def AT : AnyTypeOf<[AnyTensor]>;
 def IT : AnyTypeOf<[I1Tensor, I8Tensor, I16Tensor, I32Tensor, I64Tensor]>;
@@ -108,6 +112,19 @@ def IntClampToCore : Pat<
 def FloatClampToCore : Pat<
     (Grad_ClampOp FT:$x, FT:$dout, I64Attr:$min_int, I64Attr:$max_int, F32Attr:$min_fp, F32Attr:$max_fp),
     (MUL (Tosa_SelectOp (NativeCodeCall<"floatClampHelper($_builder, $0, $1, $2)"> $x, $min_fp, $max_fp), (AD_OneslikeOp $x), (AD_ZeroslikeOp $x), (returnType $x)), $dout)
+>;
+
+def TransposeToCore : Pat<
+    (Grad_TransposeOp AT:$x, AT:$dout),
+    (MUL (AD_OneslikeOp $x), $dout)
+>;
+
+def PowToCore : Pattern<
+    (Grad_PowOp AT:$lhs, AT:$rhs, AT:$dout),
+    [
+        (REDUCE (MUL (MUL (Tosa_PowOp (BROADCAST:$x $lhs, $dout), (Tosa_SubOp (BROADCAST:$y $rhs, $dout), (ONESLIKE $y), (returnType $y)), (returnType $x)), $y), $dout), $lhs),
+        (REDUCE (MUL (MUL (Tosa_PowOp $x, $y, (returnType $y)), (Tosa_LogOp $x, (returnType $x))), $dout), $rhs)
+    ]
 >;
 
 #endif // AD_CONVERSION_GRADTOCORE

@@ -93,8 +93,6 @@ class BinaryToCore : public OpRewritePattern<OpTy> {
   }
 };
 
-using AddToCore = BinaryToCore<grad::AddOp, grad::AddLhsOp, grad::AddRhsOp>;
-
 }  // namespace mlir::autodiff
 
 #endif  // GRADTOCORE_REWRITER_H

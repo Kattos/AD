@@ -54,6 +54,11 @@ void BroadcastOp::build(OpBuilder& odsBuilder, OperationState& odsState,
   return BroadcastOp::build(odsBuilder, odsState, to.getType(), from, to);
 }
 
+void ReduceOp::build(OpBuilder& odsBuilder, OperationState& odsState,
+                     Value from, Value to) {
+  return ReduceOp::build(odsBuilder, odsState, to.getType(), from, to);
+}
+
 void ToTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
                        Value input) {
   auto inputType = input.getType();

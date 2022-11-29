@@ -29,6 +29,10 @@ Value negate(PatternRewriter& rewriter, Value tensor);
 Value exp(PatternRewriter& rewriter, Value tensor);
 Value reciprocal(PatternRewriter& rewriter, Value tensor);
 
+Value oneslike(PatternRewriter& rewriter, Value tensor);
+Value broadcast(PatternRewriter& rewriter, Value from, Value to);
+Value reduce(PatternRewriter& rewriter, Value from, Value to);
+
 Value drsqrt(PatternRewriter& rewriter, Value tensor);
 Value dabs(PatternRewriter& rewriter, Value tensor);
 Value dGreaterEqual(PatternRewriter& rewriter, Value first, Value second);
