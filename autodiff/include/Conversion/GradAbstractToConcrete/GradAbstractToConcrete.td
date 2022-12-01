@@ -51,8 +51,13 @@ def UnaryToSigmoid : AbstractUnaryPat<
 >;
 
 def UnaryToClamp : AbstractUnaryPat<
-    (NativeCodeCall<"toClamp($_builder, $0)"> $unary),
+    (NativeCodeCall<"toConcreteWithAttrs<grad::ClampOp>($_builder, $0)"> $unary),
     (Constraint<CPred<"$0.str() == tosa::ClampOp::getOperationName()">> $op)
+>;
+
+def UnaryToAvgPool2d : AbstractUnaryPat<
+    (NativeCodeCall<"toConcreteWithAttrs<grad::AvgPool2dOp>($_builder, $0)"> $unary),
+    (Constraint<CPred<"$0.str() == tosa::AvgPool2dOp::getOperationName()">> $op)
 >;
 
 class AbstractBinaryPat<dag result, dag pred> : Pat<

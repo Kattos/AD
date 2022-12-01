@@ -88,7 +88,7 @@ class BinaryToCore : public OpRewritePattern<OpTy> {
       return failure();
     }
 
-    rewriter.replaceOp(op, {dlhs, drhs});
+    rewriter.replaceOp(op, ValueRange{dlhs, drhs});
     return success();
   }
 };

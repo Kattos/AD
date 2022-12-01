@@ -14,7 +14,7 @@ class Grad_Op<string mnemonic, list<Trait> traits = []> : Op<Grad_Dialect, mnemo
 
 def SameInputAndDerivativeType : NativeOpTrait<"SameInputAndDerivativeType">;
 
-class Grad_UnaryOp<string mnemonic, list<Trait> traits=[Pure, SameOperandsAndResultType]> : Grad_Op<mnemonic, traits> {
+class Grad_UnaryOp<string mnemonic, list<Trait> traits=[Pure]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$x, AnyType:$dout);
     let results = (outs AnyType:$dx);
 }
@@ -23,28 +23,39 @@ def Grad_AbstractUnaryOp : Grad_UnaryOp<"abstract_unary"> {
     let arguments = (ins AnyType:$x, AnyType:$dout, StrAttr:$op);
 }
 
-def Grad_AbsOp : Grad_UnaryOp<"abs">;
+def Grad_AbsOp : Grad_UnaryOp<"abs", [SameOperandsAndResultType]>;
 
-def Grad_ExpOp : Grad_UnaryOp<"exp">;
+def Grad_ExpOp : Grad_UnaryOp<"exp", [SameOperandsAndResultType]>;
 
-def Grad_LogOp : Grad_UnaryOp<"log">;
+def Grad_LogOp : Grad_UnaryOp<"log", [SameOperandsAndResultType]>;
 
-def Grad_RsqrtOp : Grad_UnaryOp<"rsqrt">;
+def Grad_RsqrtOp : Grad_UnaryOp<"rsqrt", [SameOperandsAndResultType]>;
 
-def Grad_TanhOp :  Grad_UnaryOp<"tanh">;
+def Grad_TanhOp :  Grad_UnaryOp<"tanh", [SameOperandsAndResultType]>;
 
-def Grad_ClampOp : Grad_UnaryOp<"clamp"> {
+def Grad_ClampOp : Grad_UnaryOp<"clamp", [SameOperandsAndResultType]> {
     let arguments = (ins AnyType:$x, AnyType:$dout, I64Attr:$min_int, I64Attr:$max_int, F32Attr:$min_fp, F32Attr:$max_fp);
 }
 
-def Grad_NegateOp : Grad_UnaryOp<"negate">;
+def Grad_NegateOp : Grad_UnaryOp<"negate", [SameOperandsAndResultType]>;
 
-def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal">;
+def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal", [SameOperandsAndResultType]>;
 
-def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid">;
+def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid", [SameOperandsAndResultType]>;
 
-// concern on input only
-def Grad_TransposeOp : Grad_UnaryOp<"transpose">;
+def Grad_AnyNumber : AnyTypeOf<[AnyInteger, AnyFloat]>;
+
+def Grad_AvgPool2dOp : Grad_UnaryOp<"avg_pool2d"> {
+    let arguments = (ins
+        4DTensorOf<[Grad_AnyNumber]>:$x,
+        4DTensorOf<[Grad_AnyNumber]>:$dout,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$kernel,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad
+    );
+
+    let results = (outs 4DTensorOf<[Grad_AnyNumber]>:$dx);
+}
 
 class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);

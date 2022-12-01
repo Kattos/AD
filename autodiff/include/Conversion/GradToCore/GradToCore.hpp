@@ -5,6 +5,7 @@
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Dialect/Grad/IR/Grad.hpp"
 #include "Dialect/Grad/IR/GradDialect.hpp"
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
@@ -40,6 +41,7 @@ Value intClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
                      Attribute max);
 Value floatClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
                        Attribute max);
+Value avgPool2dHelper(PatternRewriter& rewriter, Value dx);
 
 inline void LLVM_ATTRIBUTE_UNUSED
 populateWithGenerated(::mlir::RewritePatternSet& patterns);

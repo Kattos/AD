@@ -25,24 +25,24 @@ def FT : AnyTypeOf<[F16Tensor, F32Tensor, F64Tensor]>;
 def AddToCore : Pattern<
     (Grad_AddOp AT:$lhs, AT:$rhs, AT:$dout),
     [
-        (AD_ReduceOp (MUL (AD_OneslikeOp (AD_BroadcastOp $lhs, $dout)), $dout), $lhs),
-        (AD_ReduceOp (MUL (AD_OneslikeOp (AD_BroadcastOp $rhs, $dout)), $dout), $rhs),
+        (REDUCE (MUL (ONESLIKE (BROADCAST $lhs, $dout)), $dout), $lhs),
+        (REDUCE (MUL (ONESLIKE (BROADCAST $rhs, $dout)), $dout), $rhs),
     ]
 >;
 
 def SubToCore : Pattern<
     (Grad_SubOp AT:$lhs, AT:$rhs, AT:$dout),
     [
-        (AD_ReduceOp (MUL (AD_OneslikeOp (AD_BroadcastOp $lhs, $dout)), $dout), $lhs),
-        (AD_ReduceOp (MUL (NEGATE (AD_OneslikeOp (AD_BroadcastOp $rhs, $dout))), $dout), $rhs)
+        (REDUCE (MUL (ONESLIKE (BROADCAST $lhs, $dout)), $dout), $lhs),
+        (REDUCE (MUL (NEGATE (ONESLIKE (BROADCAST $rhs, $dout))), $dout), $rhs)
     ]
 >;
 
 def MulToCore : Pattern<
     (Grad_MulOp AT:$lhs, AT:$rhs, AT:$dout),
     [
-        (AD_ReduceOp (MUL (AD_BroadcastOp $rhs, $dout), $dout), $lhs),
-        (AD_ReduceOp (MUL (AD_BroadcastOp $lhs, $dout), $dout), $rhs)
+        (REDUCE (MUL (BROADCAST $rhs, $dout), $dout), $lhs),
+        (REDUCE (MUL (BROADCAST $lhs, $dout), $dout), $rhs)
     ]
 >;
 
@@ -69,7 +69,7 @@ def TanhToCore : Pat<
 
 def NegateToCore : Pat<
     (Grad_NegateOp AT:$x, AT:$dout),
-    (MUL (NEGATE (AD_OneslikeOp $x)), $dout)
+    (MUL (NEGATE (ONESLIKE $x)), $dout)
 >;
 
 def ReciprocalToCore : Pat<
@@ -80,7 +80,7 @@ def ReciprocalToCore : Pat<
 // \derivative{sigmoid(x)}{x} = \frac{e^{-x}}{(1 + e^{-x})^2}
 def SigmoidToCore : Pat<
     (Grad_SigmoidOp AT:$x, AT:$dout),
-    (MUL (MUL (RECIPROCAL (MUL (ADD:$sqrt (EXP:$ex (NEGATE $x)), (AD_OneslikeOp $ex)), $sqrt)), $ex), $dout)
+    (MUL (MUL (RECIPROCAL (MUL (ADD:$sqrt (EXP:$ex (NEGATE $x)), (ONESLIKE $ex)), $sqrt)), $ex), $dout)
 >;
 
 def AbsToCore : Pat<
@@ -91,32 +91,27 @@ def AbsToCore : Pat<
 def MaximumToCore : Pattern<
     (Grad_MaximumOp AT:$lhs, AT:$rhs, AT:$dout),
     [
-        (AD_ReduceOp (MUL (NativeCodeCall<"dGreaterEqual($_builder, $0, $1)"> (AD_BroadcastOp $lhs, $dout), (AD_BroadcastOp $rhs, $dout)), $dout), $lhs),
-        (AD_ReduceOp (MUL (NativeCodeCall<"dGreaterEqual($_builder, $0, $1)"> (AD_BroadcastOp $rhs, $dout), (AD_BroadcastOp $lhs, $dout)), $dout), $rhs),
+        (REDUCE (MUL (NativeCodeCall<"dGreaterEqual($_builder, $0, $1)"> (BROADCAST $lhs, $dout), (BROADCAST $rhs, $dout)), $dout), $lhs),
+        (REDUCE (MUL (NativeCodeCall<"dGreaterEqual($_builder, $0, $1)"> (BROADCAST $rhs, $dout), (BROADCAST $lhs, $dout)), $dout), $rhs),
     ]
 >;
 
 def MinimumToCore : Pattern<
     (Grad_MinimumOp AT:$lhs, AT:$rhs, AT:$dout),
     [
-        (AD_ReduceOp (MUL (NativeCodeCall<"dGreaterEqual($_builder, $1, $0)"> (AD_BroadcastOp $lhs, $dout), (AD_BroadcastOp $rhs, $dout)), $dout), $lhs),
-        (AD_ReduceOp (MUL (NativeCodeCall<"dGreaterEqual($_builder, $1, $0)"> (AD_BroadcastOp $rhs, $dout), (AD_BroadcastOp $lhs, $dout)), $dout), $rhs),
+        (REDUCE (MUL (NativeCodeCall<"dGreaterEqual($_builder, $1, $0)"> (BROADCAST $lhs, $dout), (BROADCAST $rhs, $dout)), $dout), $lhs),
+        (REDUCE (MUL (NativeCodeCall<"dGreaterEqual($_builder, $1, $0)"> (BROADCAST $rhs, $dout), (BROADCAST $lhs, $dout)), $dout), $rhs),
     ]
 >;
 
 def IntClampToCore : Pat<
     (Grad_ClampOp IT:$x, IT:$dout, I64Attr:$min_int, I64Attr:$max_int, F32Attr:$min_fp, F32Attr:$max_fp),
-    (MUL (Tosa_SelectOp (NativeCodeCall<"intClampHelper($_builder, $0, $1, $2)"> $x, $min_int, $max_int), (AD_OneslikeOp $x), (AD_ZeroslikeOp $x), (returnType $x)), $dout)
+    (MUL (Tosa_SelectOp (NativeCodeCall<"intClampHelper($_builder, $0, $1, $2)"> $x, $min_int, $max_int), (ONESLIKE $x), (AD_ZeroslikeOp $x), (returnType $x)), $dout)
 >;
 
 def FloatClampToCore : Pat<
     (Grad_ClampOp FT:$x, FT:$dout, I64Attr:$min_int, I64Attr:$max_int, F32Attr:$min_fp, F32Attr:$max_fp),
-    (MUL (Tosa_SelectOp (NativeCodeCall<"floatClampHelper($_builder, $0, $1, $2)"> $x, $min_fp, $max_fp), (AD_OneslikeOp $x), (AD_ZeroslikeOp $x), (returnType $x)), $dout)
->;
-
-def TransposeToCore : Pat<
-    (Grad_TransposeOp AT:$x, AT:$dout),
-    (MUL (AD_OneslikeOp $x), $dout)
+    (MUL (Tosa_SelectOp (NativeCodeCall<"floatClampHelper($_builder, $0, $1, $2)"> $x, $min_fp, $max_fp), (ONESLIKE $x), (AD_ZeroslikeOp $x), (returnType $x)), $dout)
 >;
 
 def PowToCore : Pattern<
@@ -125,6 +120,11 @@ def PowToCore : Pattern<
         (REDUCE (MUL (MUL (Tosa_PowOp (BROADCAST:$x $lhs, $dout), (Tosa_SubOp (BROADCAST:$y $rhs, $dout), (ONESLIKE $y), (returnType $y)), (returnType $x)), $y), $dout), $lhs),
         (REDUCE (MUL (MUL (Tosa_PowOp $x, $y, (returnType $y)), (Tosa_LogOp $x, (returnType $x))), $dout), $rhs)
     ]
+>;
+
+def AvgPool2dToCore : Pat<
+    (Grad_AvgPool2dOp:$dx $x, $dout, $kernel, $stride, $pad),
+    (NativeCodeCall<"avgPool2dHelper($_builder, $0)"> $dx)
 >;
 
 #endif // AD_CONVERSION_GRADTOCORE

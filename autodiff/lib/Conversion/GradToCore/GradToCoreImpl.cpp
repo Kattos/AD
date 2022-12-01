@@ -1,7 +1,9 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "Rule/Utils.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
-#include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "llvm/ADT/SmallVector.h"
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/Dialect/Utils/StructuredOpsUtils.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/TypeUtilities.h"
 
@@ -139,6 +141,108 @@ Value intClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
 Value floatClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
                        Attribute max) {
   return clampHelper<FloatAttr>(rewriter, tensor, min, max);
+}
+
+// TODO: implement integer version
+Value avgPool2dHelper(PatternRewriter& rewriter, Value output) {
+  auto avg = output.getDefiningOp<grad::AvgPool2dOp>();
+
+  if (!avg) {
+    return nullptr;
+  }
+
+  auto x = avg.getX();
+  auto dout = avg.getDout();
+  auto dx = zeros(rewriter, x);
+
+  auto kernelAttr = avg.getKernel();
+  SmallVector<int64_t, 2> kernel;
+  for (auto val : kernelAttr) {
+    kernel.emplace_back(val.cast<IntegerAttr>().getInt());
+  }
+
+  // TODO: implement case {stride != kernel} and case {pad != 0}
+  // auto strideAttr = avg.getStride();
+  // SmallVector<int64_t, 2> stride;
+  // for (auto val : strideAttr) {
+  //   stride.emplace_back(val.cast<IntegerAttr>().getInt());
+  // }
+
+  // auto padAttr = avg.getPad();
+  // SmallVector<int64_t, 4> pad;
+  // for (auto val : padAttr) {
+  //   pad.emplace_back(val.cast<IntegerAttr>().getInt());
+  // }
+
+  /*
+
+  for i in range(dout.shape[0]):
+    for j in range(dout.shape[1]):
+      for k in range(dout.shape[2]):
+        for l in range(dout.shape[3]):
+          for m in range(stride[0]):
+            for n in range(stride[1]):
+              p = j * stride[0] + m
+              q = k * stride[1] + n
+              dx[i][p][q][l] = dout[i][j][k][l] / (m * n)
+
+
+  */
+
+  // affine_map<(i, j, k, l, m, n) -> (i, j, k, l, m, n)>
+  auto map = AffineMap::getMultiDimIdentityMap(6, rewriter.getContext());
+  // affine_map<(i, j, k, l, m, n) -> (i, j, k, l)>
+  auto mapForDout = map.getMajorSubMap(4);
+  // affine_map<(i, j, k, l, m, n) -> (m, n)>
+  auto mapForWindow = map.getMinorSubMap(2);
+
+  SmallVector<AffineExpr, 6> exprs;
+
+  for (auto i = 0; i < 6; i++) {
+    exprs.emplace_back(rewriter.getAffineDimExpr(i));
+  }
+
+  exprs[1] = exprs[1] * kernel[0] + exprs[4];
+  exprs[2] = exprs[2] * kernel[1] + exprs[5];
+  exprs.pop_back_n(2);
+  auto mapForDx = AffineMap::get(6, 0, exprs, rewriter.getContext());
+
+  auto emptyWindow =
+      createOp<tensor::EmptyOp>(rewriter, kernel, getElementTypeOrSelf(x));
+  auto window = zeros(rewriter, emptyWindow);
+
+  auto resultTensorTypes = dx.getType();
+  auto inputs = ValueRange{dout, window};
+  auto outputs = dx;
+  auto indexMaps = {mapForDout, mapForWindow, mapForDx};
+
+  // reduction for innermost loop, parallel for others
+  SmallVector<StringRef, 6> iteratorTypes;
+  for (auto i = 0; i < 5; i++) {
+    iteratorTypes.emplace_back(getParallelIteratorTypeName());
+  }
+  iteratorTypes.emplace_back(getReductionIteratorTypeName());
+
+  // calculate kernel size
+  auto size = 1.0;
+  for (auto dim : kernel) {
+    size *= dim;
+  }
+  auto sizeAttr = rewriter.getFloatAttr(getElementTypeOrSelf(x), size);
+  auto sizeCst = createOp<arith::ConstantOp>(rewriter, sizeAttr);
+
+  // dx[i][p][q][l] = dout[i][j][k][l] / (m * n)
+  auto calculator = [&](OpBuilder& builder, Location loc, ValueRange args) {
+    auto div = createOp<arith::DivFOp>(rewriter, args[0], sizeCst);
+    auto add = createOp<arith::AddFOp>(rewriter, args[2], div);
+    createOp<linalg::YieldOp>(rewriter, add.getResult());
+  };
+
+  auto generic =
+      createOp<linalg::GenericOp>(rewriter, resultTensorTypes, inputs, outputs,
+                                  indexMaps, iteratorTypes, calculator);
+
+  return generic->getResult(0);
 }
 
 }  // namespace core

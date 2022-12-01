@@ -21,6 +21,23 @@ namespace concrete {
 
 Value toClamp(PatternRewriter& rewriter, Value unary);
 
+template <typename OpTy>
+Value toConcreteWithAttrs(PatternRewriter& rewriter, Value unary) {
+  auto abstract = unary.getDefiningOp<grad::AbstractUnaryOp>();
+
+  if (!abstract) {
+    return nullptr;
+  }
+
+  auto resultTypes = abstract->getResultTypes();
+  auto operands = abstract->getOperands();
+  abstract->removeAttr("op");
+  auto attrs = abstract->getAttrs();
+
+  return rewriter.create<OpTy>(rewriter.getUnknownLoc(), resultTypes, operands,
+                               attrs);
+}
+
 inline void LLVM_ATTRIBUTE_UNUSED
 populateWithGenerated(::mlir::RewritePatternSet& patterns);
 
