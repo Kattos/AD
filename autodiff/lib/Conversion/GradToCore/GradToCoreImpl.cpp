@@ -4,6 +4,7 @@
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/Dialect/Utils/StructuredOpsUtils.h"
+#include "mlir/IR/OpDefinition.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/TypeUtilities.h"
 
@@ -161,18 +162,47 @@ Value avgPool2dHelper(PatternRewriter& rewriter, Value output) {
     kernel.emplace_back(val.cast<IntegerAttr>().getInt());
   }
 
-  // TODO: implement case {stride != kernel} and case {pad != 0}
-  // auto strideAttr = avg.getStride();
-  // SmallVector<int64_t, 2> stride;
-  // for (auto val : strideAttr) {
-  //   stride.emplace_back(val.cast<IntegerAttr>().getInt());
-  // }
+  auto strideAttr = avg.getStride();
+  SmallVector<int64_t, 2> stride;
+  for (auto val : strideAttr) {
+    stride.emplace_back(val.cast<IntegerAttr>().getInt());
+  }
 
-  // auto padAttr = avg.getPad();
-  // SmallVector<int64_t, 4> pad;
-  // for (auto val : padAttr) {
-  //   pad.emplace_back(val.cast<IntegerAttr>().getInt());
-  // }
+  // build padded tensor
+  auto padAttr = avg.getPad();
+  SmallVector<int64_t, 8> pad;
+
+  for (auto val : padAttr) {
+    pad.emplace_back(val.cast<IntegerAttr>().getInt());
+  }
+
+  for (auto i = 0; i < 2; i++) {
+    pad.insert(pad.begin(), 0);
+    pad.emplace_back(0);
+  }
+
+  auto xType = x.getType();
+  auto xElemType = xType.getElementType();
+  auto xShape = xType.getShape();
+  SmallVector<int64_t, 4> paddedShape;
+
+  SmallVector<OpFoldResult, 4> lowIndices, highIndices;
+  for (auto i = 0; i < 4; i++) {
+    auto low = pad[i * 2];
+    auto high = pad[i * 2 + 1];
+    lowIndices.emplace_back(rewriter.getIndexAttr(low));
+    highIndices.emplace_back(rewriter.getIndexAttr(high));
+    paddedShape.emplace_back(xShape[i] + low + high);
+  }
+
+  auto zeroAttr = rewriter.getZeroAttr(xElemType);
+  auto zero =
+      createOp<arith::ConstantOp>(rewriter, xElemType, zeroAttr).getResult();
+
+  auto paddedType = RankedTensorType::get(paddedShape, xElemType);
+  auto paddedDx = createOp<tensor::PadOp>(rewriter, paddedType, dx, lowIndices,
+                                          highIndices, zero)
+                      .getResult();
 
   /*
 
@@ -180,12 +210,11 @@ Value avgPool2dHelper(PatternRewriter& rewriter, Value output) {
     for j in range(dout.shape[1]):
       for k in range(dout.shape[2]):
         for l in range(dout.shape[3]):
-          for m in range(stride[0]):
-            for n in range(stride[1]):
+          for m in range(kernel[0]):
+            for n in range(kernel[1]):
               p = j * stride[0] + m
               q = k * stride[1] + n
-              dx[i][p][q][l] = dout[i][j][k][l] / (m * n)
-
+              dx[i][p][q][l] = dout[i][j][k][l] / (kernel[0] * kernel[1])
 
   */
 
@@ -202,18 +231,19 @@ Value avgPool2dHelper(PatternRewriter& rewriter, Value output) {
     exprs.emplace_back(rewriter.getAffineDimExpr(i));
   }
 
-  exprs[1] = exprs[1] * kernel[0] + exprs[4];
-  exprs[2] = exprs[2] * kernel[1] + exprs[5];
+  // p = j * stride[0] + m
+  exprs[1] = exprs[1] * stride[0] + exprs[4];
+  // q = k * stride[1] + n
+  exprs[2] = exprs[2] * stride[1] + exprs[5];
   exprs.pop_back_n(2);
   auto mapForDx = AffineMap::get(6, 0, exprs, rewriter.getContext());
 
-  auto emptyWindow =
-      createOp<tensor::EmptyOp>(rewriter, kernel, getElementTypeOrSelf(x));
+  auto emptyWindow = createOp<tensor::EmptyOp>(rewriter, kernel, xElemType);
   auto window = zeros(rewriter, emptyWindow);
 
-  auto resultTensorTypes = dx.getType();
+  auto resultTensorTypes = paddedDx.getType();
   auto inputs = ValueRange{dout, window};
-  auto outputs = dx;
+  auto outputs = paddedDx;
   auto indexMaps = {mapForDout, mapForWindow, mapForDx};
 
   // reduction for innermost loop, parallel for others
@@ -233,16 +263,30 @@ Value avgPool2dHelper(PatternRewriter& rewriter, Value output) {
 
   // dx[i][p][q][l] = dout[i][j][k][l] / (m * n)
   auto calculator = [&](OpBuilder& builder, Location loc, ValueRange args) {
-    auto div = createOp<arith::DivFOp>(rewriter, args[0], sizeCst);
-    auto add = createOp<arith::AddFOp>(rewriter, args[2], div);
-    createOp<linalg::YieldOp>(rewriter, add.getResult());
+    auto div = createOp<arith::DivFOp>(builder, args[0], sizeCst);
+    auto add = createOp<arith::AddFOp>(builder, args[2], div);
+    createOp<linalg::YieldOp>(builder, add.getResult());
   };
 
   auto generic =
       createOp<linalg::GenericOp>(rewriter, resultTensorTypes, inputs, outputs,
                                   indexMaps, iteratorTypes, calculator);
 
-  return generic->getResult(0);
+  // extract dx from dpaddedx
+  auto dPaddedX = generic->getResult(0);
+  auto extOffsets = lowIndices;
+
+  SmallVector<OpFoldResult, 4> extSizes, extStrides;
+  for (auto i = 0; i < 4; i++) {
+    extSizes.emplace_back(rewriter.getIndexAttr(xShape[i]));
+    extStrides.emplace_back(rewriter.getIndexAttr(1));
+  }
+
+  auto extract = createOp<tensor::ExtractSliceOp>(
+      rewriter, xType.cast<RankedTensorType>(), dPaddedX, extOffsets, extSizes,
+      extStrides);
+
+  return extract;
 }
 
 }  // namespace core
