@@ -1,5 +1,7 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 
+#include "AvgPool2d.cpp"
+#include "Conv2D.cpp"
 #include "GradToCoreImpl.cpp"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 

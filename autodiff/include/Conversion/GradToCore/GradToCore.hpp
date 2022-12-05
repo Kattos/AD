@@ -41,7 +41,8 @@ Value intClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
                      Attribute max);
 Value floatClampHelper(PatternRewriter& rewriter, Value tensor, Attribute min,
                        Attribute max);
-Value avgPool2dHelper(PatternRewriter& rewriter, Value dx);
+Value dAvgPool2d(PatternRewriter& rewriter, Value dx);
+Value dConv2D(PatternRewriter& rewriter, Value dx);
 
 inline void LLVM_ATTRIBUTE_UNUSED
 populateWithGenerated(::mlir::RewritePatternSet& patterns);

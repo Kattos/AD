@@ -5,6 +5,8 @@ include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 
+include "Dialect/Grad/IR/GradTypes.td"
+
 def Grad_Dialect : Dialect {
     let name = "grad";
     let cppNamespace = "::mlir::autodiff::grad";
@@ -43,20 +45,6 @@ def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal", [SameOperandsAndResultType]>;
 
 def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid", [SameOperandsAndResultType]>;
 
-def Grad_AnyNumber : AnyTypeOf<[AnyInteger, AnyFloat]>;
-
-def Grad_AvgPool2dOp : Grad_UnaryOp<"avg_pool2d"> {
-    let arguments = (ins
-        4DTensorOf<[Grad_AnyNumber]>:$x,
-        4DTensorOf<[Grad_AnyNumber]>:$dout,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$kernel,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad
-    );
-
-    let results = (outs 4DTensorOf<[Grad_AnyNumber]>:$dx);
-}
-
 class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
     let results = (outs AnyType:$dlhs, AnyType:$drhs);
@@ -77,5 +65,36 @@ def Grad_MaximumOp : Grad_BinaryOp<"maximum">;
 def Grad_MinimumOp : Grad_BinaryOp<"minimum">;
 
 def Grad_PowOp : Grad_BinaryOp<"pow">;
+
+def Grad_AnyNumber : AnyTypeOf<[AnyInteger, AnyFloat]>;
+
+def Grad_AvgPool2dOp : Grad_UnaryOp<"avg_pool2d"> {
+    let arguments = (ins
+        Grad_Tensor4D:$x,
+        Grad_Tensor4D:$dout,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$kernel,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad
+    );
+
+    let results = (outs 4DTensorOf<[Grad_AnyNumber]>:$dx);
+}
+
+// TODO: add `SameInputAndDerivativeType` trait
+def Grad_Conv2DOp : Grad_Op<"conv2d"> {
+    let arguments = (ins
+        Grad_Tensor4D:$x,
+        Grad_Tensor4D:$dout,
+        Grad_Tensor4D:$weight,
+        Grad_Tensor1D:$bias,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$dilation,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad
+    );
+
+    let results = (outs 
+        Grad_Tensor4D:$dx
+    );
+}
 
 #endif // GRAD_OPS
