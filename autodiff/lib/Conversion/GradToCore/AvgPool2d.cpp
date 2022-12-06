@@ -1,5 +1,6 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "Rule/Utils.hpp"
+#include "Utils.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 
 namespace mlir {
@@ -20,53 +21,16 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value output) {
   auto dout = avg.getDout();
   auto dx = zeros(rewriter, x);
 
-  auto kernelAttr = avg.getKernel();
-  SmallVector<int64_t, 2> kernel;
-  for (auto val : kernelAttr) {
-    kernel.emplace_back(val.cast<IntegerAttr>().getInt());
-  }
+  SmallVector<int64_t> kernel;
+  attrToArray(avg.getKernelAttr(), kernel);
 
-  auto strideAttr = avg.getStride();
-  SmallVector<int64_t, 2> stride;
-  for (auto val : strideAttr) {
-    stride.emplace_back(val.cast<IntegerAttr>().getInt());
-  }
-
-  // build padded tensor
-  auto padAttr = avg.getPad();
-  SmallVector<int64_t, 8> pad;
-
-  for (auto val : padAttr) {
-    pad.emplace_back(val.cast<IntegerAttr>().getInt());
-  }
-
-  for (__attribute__((unused)) auto i : llvm::seq(0, 2)) {
-    pad.insert(pad.begin(), 0);
-    pad.emplace_back(0);
-  }
+  SmallVector<int64_t> stride;
+  attrToArray(avg.getStrideAttr(), stride);
 
   auto xType = x.getType().cast<RankedTensorType>();
   auto xElemType = xType.getElementType();
-  auto xShape = xType.getShape();
-  SmallVector<int64_t, 4> paddedShape;
 
-  SmallVector<OpFoldResult, 4> lowIndices, highIndices;
-  for (auto i : llvm::seq(0, 4)) {
-    auto low = pad[i * 2];
-    auto high = pad[i * 2 + 1];
-    lowIndices.emplace_back(rewriter.getIndexAttr(low));
-    highIndices.emplace_back(rewriter.getIndexAttr(high));
-    paddedShape.emplace_back(xShape[i] + low + high);
-  }
-
-  auto zeroAttr = rewriter.getZeroAttr(xElemType);
-  auto zero =
-      createOp<arith::ConstantOp>(rewriter, xElemType, zeroAttr).getResult();
-
-  auto paddedType = RankedTensorType::get(paddedShape, xElemType);
-  auto paddedDx = createOp<tensor::PadOp>(rewriter, paddedType, dx, lowIndices,
-                                          highIndices, zero)
-                      .getResult();
+  auto paddedDx = pad2DTensor(rewriter, dx, avg.getPadAttr());
 
   /*
 
@@ -110,12 +74,13 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value output) {
   auto outputs = paddedDx;
   auto indexMaps = {mapForDout, mapForWindow, mapForDx};
 
-  // reduction for innermost loop, parallel for others
+  // parallel for dim0 and dim5, reduction for others
   SmallVector<StringRef, 6> iteratorTypes;
-  for (__attribute__((unused)) auto i : llvm::seq(0, 5)) {
-    iteratorTypes.emplace_back(getParallelIteratorTypeName());
+  for (__attribute__((unused)) auto i : llvm::seq(0, 4)) {
+    iteratorTypes.push_back(getReductionIteratorTypeName());
   }
-  iteratorTypes.emplace_back(getReductionIteratorTypeName());
+  iteratorTypes.insert(iteratorTypes.begin(), getParallelIteratorTypeName());
+  iteratorTypes.emplace_back(getParallelIteratorTypeName());
 
   // calculate kernel size
   auto size = 1.0;
@@ -137,19 +102,7 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value output) {
                                   indexMaps, iteratorTypes, calculator);
 
   // extract dx from dpaddedx
-  auto dPaddedX = generic->getResult(0);
-  auto extOffsets = lowIndices;
-
-  SmallVector<OpFoldResult, 4> extSizes, extStrides;
-  for (auto i : llvm::seq(0, 4)) {
-    extSizes.emplace_back(rewriter.getIndexAttr(xShape[i]));
-    extStrides.emplace_back(rewriter.getIndexAttr(1));
-  }
-
-  auto extract = createOp<tensor::ExtractSliceOp>(
-      rewriter, xType, dPaddedX, extOffsets, extSizes, extStrides);
-
-  return extract;
+  return unpad2DTensor(rewriter, generic->getResult(0), avg.getPadAttr());
 }
 
 }  // namespace core

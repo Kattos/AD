@@ -5,6 +5,7 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "Debug")
 
+add_compile_options("-Wno-ambiguous-reversed-operator")
 add_link_options("-fuse-ld=lld")
 
 project(autodiff)

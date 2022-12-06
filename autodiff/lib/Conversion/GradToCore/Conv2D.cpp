@@ -1,9 +1,7 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
-#include "Dialect/Grad/IR/Grad.hpp"
-#include "llvm/ADT/Sequence.h"
+#include "Utils.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Utils/StructuredOpsUtils.h"
-#include "mlir/IR/AffineExpr.h"
 
 namespace mlir {
 namespace autodiff {
@@ -39,12 +37,16 @@ Value dConv2D(PatternRewriter& rewriter, Value output) {
   auto weight = conv.getWeight();
 
   // get strides
-  auto strideAttr = conv.getStrideAttr();
   SmallVector<int64_t> stride;
-  stride.reserve(strideAttr.size());
-  for (auto val : strideAttr) {
-    stride.emplace_back(val.cast<IntegerAttr>().getInt());
-  }
+  attrToArray(conv.getStrideAttr(), stride);
+
+  // get dilations
+  SmallVector<int64_t> dilations;
+  // TODO: support dilation
+  attrToArray(conv.getDilationAttr(), dilations);
+
+  // build padded tensor
+  auto paddedDx = pad2DTensor(rewriter, dx, conv.getPadAttr());
 
   // build window
   auto weightType = weight.getType().cast<ShapedType>();
@@ -88,16 +90,18 @@ Value dConv2D(PatternRewriter& rewriter, Value output) {
   auto mapForDx = AffineMap::get(DIM_COUNT, SYM_COUNT, dxExprs, ctx);
 
   // build generic op
-  auto resultTensorTypes = dx.getType().cast<TensorType>();
+  auto resultTensorTypes = paddedDx.getType().cast<TensorType>();
   auto inputs = ValueRange{dout, window, weight};
-  auto outputs = dx;  // TODO: replace with paddedDx
+  auto outputs = paddedDx;
   auto indexMaps = {mapForDout, mapForWindow, mapForWeight, mapForDx};
 
+  // parallel for dim0 and dim5, reduction for others
   SmallVector<StringRef, DIM_COUNT> iteratorTypes;
-  for (__attribute__((unused)) auto i : llvm::seq(0, DIM_COUNT - 1)) {
-    iteratorTypes.push_back(getParallelIteratorTypeName());
+  for (__attribute__((unused)) auto i : llvm::seq(0, DIM_COUNT - 2)) {
+    iteratorTypes.push_back(getReductionIteratorTypeName());
   }
-  iteratorTypes.emplace_back(getReductionIteratorTypeName());
+  iteratorTypes.insert(iteratorTypes.begin(), getParallelIteratorTypeName());
+  iteratorTypes.emplace_back(getParallelIteratorTypeName());
 
   // dx[i][p][q][l] += dout[i][j][k][l] * weight[i][m][n][l]
   auto calculator = [&](OpBuilder& builder, Location loc, ValueRange args) {
@@ -110,7 +114,7 @@ Value dConv2D(PatternRewriter& rewriter, Value output) {
                                                     inputs, outputs, indexMaps,
                                                     iteratorTypes, calculator);
 
-  return generic->getResult(0);
+  return unpad2DTensor(rewriter, generic->getResult(0), conv.getPadAttr());
 }
 
 }  // namespace core

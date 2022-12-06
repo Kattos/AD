@@ -84,9 +84,9 @@ def Grad_AvgPool2dOp : Grad_UnaryOp<"avg_pool2d"> {
 def Grad_Conv2DOp : Grad_Op<"conv2d"> {
     let arguments = (ins
         Grad_Tensor4D:$x,
-        Grad_Tensor4D:$dout,
         Grad_Tensor4D:$weight,
         Grad_Tensor1D:$bias,
+        Grad_Tensor4D:$dout,
         ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$dilation,
         ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
         ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad

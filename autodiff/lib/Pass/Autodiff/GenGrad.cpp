@@ -4,11 +4,23 @@
 #include "Rule/Rules.hpp"
 #include "Rule/Utils.hpp"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/OpDefinition.h"
 
 namespace mlir {
 namespace autodiff {
+
+template <typename GradTy>
+Operation* toGrad(OpBuilder& builder, Operation* primal, TypeRange types,
+                  Value dout) {
+  auto attributes = primal->getAttrs();
+  auto operands = primal->getOperands();
+  SmallVector<Value> gradOperands(operands);
+  gradOperands.emplace_back(dout);
+  return builder.create<GradTy>(primal->getLoc(), types, gradOperands,
+                                attributes);
+}
 
 class GenGradPass : public GenGradPassBase<GenGradPass> {
   const StringRef REQGRAD = "requires_grad";
@@ -59,6 +71,17 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
 
       backprop(builder, lhsOp, binary.getDlhs());
       backprop(builder, rhsOp, binary.getDrhs());
+    } else if (3 == inputs) {
+      // TODO: finish this block
+      auto args =
+          std::make_tuple(builder, op, op->getOperand(0).getType(), dout);
+
+      Operation* grad =
+          llvm::StringSwitch<Operation*>(op->getName().getStringRef())
+              .Case(tosa::Conv2DOp::getOperationName(),
+                    std::apply(toGrad<grad::Conv2DOp>, args));
+
+      backprop(builder, grad, grad->getResult(0));
     }
   }
 
