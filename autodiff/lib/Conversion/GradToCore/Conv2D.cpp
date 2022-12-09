@@ -22,7 +22,7 @@ for i in range(dout.shape[0]):
 
 */
 
-Value dConv2D(PatternRewriter& rewriter, Value output) {
+Value dConv2DInput(PatternRewriter& rewriter, Value output) {
   auto conv = output.getDefiningOp<grad::Conv2DOp>();
   if (!conv) {
     return nullptr;
@@ -115,6 +115,18 @@ Value dConv2D(PatternRewriter& rewriter, Value output) {
                                                     iteratorTypes, calculator);
 
   return unpad2DTensor(rewriter, generic->getResult(0), conv.getPadAttr());
+}
+
+Value dConv2DBias(PatternRewriter& rewriter, Value output) {
+  auto conv = output.getDefiningOp<grad::Conv2DOp>();
+  if (!conv) {
+    return nullptr;
+  }
+
+  auto loc = rewriter.getUnknownLoc();
+  auto bias = conv.getBias();
+
+  return rewriter.create<ad::OneslikeOp>(loc, bias);
 }
 
 }  // namespace core

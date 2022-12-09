@@ -93,7 +93,8 @@ def Grad_Conv2DOp : Grad_Op<"conv2d"> {
     );
 
     let results = (outs 
-        Grad_Tensor4D:$dx
+        Grad_Tensor4D:$dx,
+        Grad_Tensor1D:$dbias
     );
 }
 

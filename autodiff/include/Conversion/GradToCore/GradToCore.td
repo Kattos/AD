@@ -127,9 +127,12 @@ def AvgPool2dToCore : Pat<
     (NativeCodeCall<"dAvgPool2d($_builder, $0)"> $dx)
 >;
 
-def Conv2DToCore : Pat<
+def Conv2DToCore : Pattern<
     (Grad_Conv2DOp:$dx $x, $dout, $weight, $bias, $dilation, $stride, $pad),
-    (NativeCodeCall<"dConv2D($_builder, $0)"> $dx)
+    [
+        (NativeCodeCall<"dConv2DInput($_builder, $0)"> $dx__0),
+        (NativeCodeCall<"dConv2DBias($_builder, $0)"> $dx__1) // TODO: finish this
+    ]
 >;
 
 #endif // AD_CONVERSION_GRADTOCORE
