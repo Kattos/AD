@@ -189,6 +189,9 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       auto newType =
           builder.getFunctionType(argsType, returnOp->getOperandTypes());
       func.setFunctionType(newType);
+
+      // remove unused attribute
+      func.getBody().walk([&](Operation* op) { op->removeAttr(REQGRAD); });
     });
   }
 };

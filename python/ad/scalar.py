@@ -29,11 +29,11 @@ class Scalar:
         return Scalar(scalar)
 
     @classmethod
-    def do_tosa(cls, op: Operation, *operand: Scalar) -> Scalar:
-        return Scalar.do_tosa_with_attrs(op, None, *operand)
+    def __do_tosa(cls, op: Operation, *operand: Scalar) -> Scalar:
+        return Scalar.__do_tosa_with_attrs(op, None, *operand)
 
     @classmethod
-    def do_tosa_with_attrs(
+    def __do_tosa_with_attrs(
         cls, op: Operation, attributes: Optional[dict] = None, *operand: Scalar
     ) -> Scalar:
         with cls.__ctx, cls.__loc:
@@ -59,44 +59,44 @@ class Scalar:
         return self.value.__str__()
 
     def __add__(self, another: Scalar) -> Scalar:
-        return Scalar.do_tosa(tosa.AddOp, self, another)
+        return Scalar.__do_tosa(tosa.AddOp, self, another)
 
     def __sub__(self, another: Scalar) -> Scalar:
-        return Scalar.do_tosa(tosa.SubOp, self, another)
+        return Scalar.__do_tosa(tosa.SubOp, self, another)
 
     def __pow__(self, another: Scalar) -> Scalar:
-        return Scalar.do_tosa(tosa.PowOp, self, another)
+        return Scalar.__do_tosa(tosa.PowOp, self, another)
 
     def __mul__(self, another: Scalar) -> Scalar:
         shift = IntegerAttr.get(self.__i32_type, 0)
-        return Scalar.do_tosa_with_attrs(tosa.MulOp, {"shift": shift}, self, another)
+        return Scalar.__do_tosa_with_attrs(tosa.MulOp, {"shift": shift}, self, another)
 
     def __abs__(self) -> Scalar:
-        return Scalar.do_tosa(tosa.AbsOp, self)
+        return Scalar.__do_tosa(tosa.AbsOp, self)
 
     def exp(self) -> Scalar:
-        return Scalar.do_tosa(tosa.ExpOp, self)
+        return Scalar.__do_tosa(tosa.ExpOp, self)
 
     def log(self) -> Scalar:
-        return Scalar.do_tosa(tosa.LogOp, self)
+        return Scalar.__do_tosa(tosa.LogOp, self)
 
     def rsqrt(self) -> Scalar:
-        return Scalar.do_tosa(tosa.RsqrtOp, self)
+        return Scalar.__do_tosa(tosa.RsqrtOp, self)
 
     def tanh(self) -> Scalar:
-        return Scalar.do_tosa(tosa.TanhOp, self)
+        return Scalar.__do_tosa(tosa.TanhOp, self)
 
     def negate(self) -> Scalar:
-        return Scalar.do_tosa(tosa.NegateOp, self)
+        return Scalar.__do_tosa(tosa.NegateOp, self)
 
     def reciprocal(self) -> Scalar:
-        return Scalar.do_tosa(tosa.ReciprocalOp, self)
+        return Scalar.__do_tosa(tosa.ReciprocalOp, self)
 
     def sigmoid(self) -> Scalar:
-        return Scalar.do_tosa(tosa.SigmoidOp, self)
+        return Scalar.__do_tosa(tosa.SigmoidOp, self)
 
 
-def gen_mlir(
+def pyfunc_to_mlir(
     context: Context,
     location: Location,
     inputs: int,
@@ -121,4 +121,4 @@ def gen_mlir(
         return module
 
 
-__all__ = ["Scalar", "gen_mlir"]
+__all__ = ["Scalar", "pyfunc_to_mlir"]
