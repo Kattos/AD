@@ -86,5 +86,9 @@ def BinaryToPow : AbstractBinaryPat<
     (Constraint<CPred<"$0.str() == tosa::PowOp::getOperationName()">> $op)
 >;
 
+def BinaryToMatMul : AbstractBinaryPat<
+    (Grad_MatMulOp $lhs, $rhs, $dout),
+    (Constraint<CPred<"$0.str() == tosa::MatMulOp::getOperationName()">> $op)
+>;
 
 #endif // AD_CONVERSION_GRADABSTRACTTOCONCRETE

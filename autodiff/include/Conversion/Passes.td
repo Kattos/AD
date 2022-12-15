@@ -14,7 +14,15 @@ def GradToCore : Pass<"grad-to-core"> {
     let summary = "Convert Grad ops to ops from mlir core dialects";
     let constructor = "mlir::autodiff::createGradToCore()";
 
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::math::MathDialect", "mlir::scf::SCFDialect", "mlir::tensor::TensorDialect", "mlir::linalg::LinalgDialect", "mlir::tosa::TosaDialect"];
+    let dependentDialects = [
+        "mlir::autodiff::ad::ADDialect", 
+        "mlir::math::MathDialect", 
+        "mlir::scf::SCFDialect", 
+        "mlir::tensor::TensorDialect", 
+        "mlir::linalg::LinalgDialect", 
+        "mlir::tosa::TosaDialect", 
+        "mlir::bufferization::BufferizationDialect"
+    ];
 }
 
 def GradAbstractToConcrete : Pass<"grad-concrete"> {

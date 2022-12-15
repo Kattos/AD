@@ -98,4 +98,17 @@ def Grad_Conv2DOp : Grad_Op<"conv2d"> {
     );
 }
 
+def Grad_MatMulOp : Grad_BinaryOp<"matmul"> {
+    let arguments = (ins
+        Grad_Tensor3D:$lhs,
+        Grad_Tensor3D:$rhs,
+        Grad_Tensor3D:$dout
+    );
+
+    let results = (outs
+        Grad_Tensor3D:$dlhs,
+        Grad_Tensor3D:$drhs
+    );
+}
+
 #endif // GRAD_OPS
