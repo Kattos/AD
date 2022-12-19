@@ -60,7 +60,7 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
   }
 
   void backprop(OpBuilder& builder, Operation* op, Value dout) {
-    if (!op) {
+    if (!op || !op->hasAttr(REQGRAD)) {
       return;
     }
 
@@ -78,6 +78,10 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       auto unary = createOp<grad::AbstractUnaryOp>(builder, x.getType(), x,
                                                    dout, opAttr);
 
+      for (auto attr : op->getAttrs()) {
+        unary->setAttr(attr.getName(), attr.getValue());
+      }
+
       auto xOp = getRelatedOperation(x);
       backprop(builder, xOp, unary.getDx());
     } else if (2 == inputs) {
@@ -85,6 +89,10 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       auto rhs = op->getOperand(1);
       auto binary = createOp<grad::AbstractBinaryOp>(
           builder, lhs.getType(), rhs.getType(), lhs, rhs, dout, opAttr);
+
+      for (auto attr : op->getAttrs()) {
+        binary->setAttr(attr.getName(), attr.getValue());
+      }
 
       auto lhsOp = getRelatedOperation(lhs);
       auto rhsOp = getRelatedOperation(rhs);
