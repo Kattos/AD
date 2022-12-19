@@ -20,9 +20,9 @@ for i in range(lhs.shape[0]):
 class GradMatMulToCore : public OpRewritePattern<grad::MatMulOp> {
   using OpRewritePattern<grad::MatMulOp>::OpRewritePattern;
 
-  LogicalResult matchAndRewrite(grad::MatMulOp MatMul,
+  LogicalResult matchAndRewrite(grad::MatMulOp matmul,
                                 PatternRewriter& rewriter) const override {
-    rewriter.setInsertionPointAfter(MatMul);
+    rewriter.setInsertionPointAfter(matmul);
     auto loc = rewriter.getUnknownLoc();
     auto ctx = rewriter.getContext();
 
@@ -43,22 +43,20 @@ class GradMatMulToCore : public OpRewritePattern<grad::MatMulOp> {
     auto mapForL = getMap({0, 1, 2});
     auto mapForR = getMap({0, 2, 3});
 
-    auto lhs = MatMul.getLhs();
-    auto rhs = MatMul.getRhs();
+    auto lhs = matmul.getLhs();
+    auto rhs = matmul.getRhs();
 
-    auto lhsAttr = rewriter.getNamedAttr("operand_segment_sizes",
-                                         rewriter.getDenseI32ArrayAttr({0, 0}));
-    auto rhsAttr = rewriter.getNamedAttr("operand_segment_sizes",
-                                         rewriter.getDenseI32ArrayAttr({0, 0}));
+    auto operandSegmentSizes = rewriter.getNamedAttr(
+        "operand_segment_sizes", rewriter.getDenseI32ArrayAttr({0, 0}));
 
-    SmallVector<Value> dynamicSizes;
+    SmallVector<Value, 0> dynamicSizes;
     auto dlhs = rewriter.create<bufferization::AllocTensorOp>(
-        loc, lhs.getType(), dynamicSizes, lhsAttr);
+        loc, lhs.getType(), dynamicSizes, operandSegmentSizes);
     auto drhs = rewriter.create<bufferization::AllocTensorOp>(
-        loc, rhs.getType(), dynamicSizes, rhsAttr);
+        loc, rhs.getType(), dynamicSizes, operandSegmentSizes);
 
-    auto resultTensorTypes = MatMul->getResultTypes();
-    auto inputs = MatMul->getOperands();
+    auto resultTensorTypes = matmul->getResultTypes();
+    auto inputs = matmul->getOperands();
     auto outputs = ValueRange{dlhs, drhs};
     auto indexingMaps = {mapForL, mapForR, mapForDout, mapForL, mapForR};
     auto iteratorTypes =
@@ -84,7 +82,7 @@ class GradMatMulToCore : public OpRewritePattern<grad::MatMulOp> {
         loc, resultTensorTypes, inputs, outputs, indexingMaps, iteratorTypes,
         calculator);
 
-    rewriter.replaceOp(MatMul, generic->getResults());
+    rewriter.replaceOp(matmul, generic->getResults());
 
     return success();
   }

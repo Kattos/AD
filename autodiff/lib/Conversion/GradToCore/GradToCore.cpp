@@ -4,6 +4,8 @@
 #include "Conv2D.cpp"
 #include "GradToCoreImpl.cpp"
 #include "MatMul.cpp"
+#include "ReduceSum.cpp"
+#include "Reshape.cpp"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir {

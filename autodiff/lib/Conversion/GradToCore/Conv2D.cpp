@@ -2,6 +2,8 @@
 #include "Utils.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Utils/StructuredOpsUtils.h"
+#include "mlir/IR/PatternMatch.h"
+#include "mlir/Support/LogicalResult.h"
 
 namespace mlir {
 namespace autodiff {
@@ -128,6 +130,15 @@ Value dConv2DBias(PatternRewriter& rewriter, Value output) {
 
   return rewriter.create<ad::OneslikeOp>(loc, bias);
 }
+
+class GradConv2DToCore : public OpRewritePattern<grad::Conv2DOp> {
+  using OpRewritePattern<grad::Conv2DOp>::OpRewritePattern;
+
+  LogicalResult matchAndRewrite(grad::Conv2DOp conv,
+                                PatternRewriter& rewriter) const override {
+    return success();
+  }
+};
 
 }  // namespace core
 }  // namespace grad

@@ -45,6 +45,16 @@ def Grad_ReciprocalOp : Grad_UnaryOp<"reciprocal", [SameOperandsAndResultType]>;
 
 def Grad_SigmoidOp : Grad_UnaryOp<"sigmoid", [SameOperandsAndResultType]>;
 
+def Grad_ReshapeOp : Grad_UnaryOp<"reshape"> {
+    let arguments = (ins
+        AnyType: $x,
+        AnyType: $dout,
+        I64ArrayAttr: $new_shape
+    );
+}
+
+def Grad_ReduceSumOp : Grad_UnaryOp<"reduce_sum">;
+
 class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
     let results = (outs AnyType:$dlhs, AnyType:$drhs);

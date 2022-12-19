@@ -135,4 +135,14 @@ def Conv2DToCore : Pattern<
     ]
 >;
 
+def ReshapeToCore : Pat<
+    (Grad_ReshapeOp:$dx $x, $dout, $new_shape),
+    (NativeCodeCall<"dReshape($_builder, $0)"> $dx)
+>;
+
+def ReduceSumToCore : Pat<
+    (Grad_ReduceSumOp $x, $dout),
+    (BROADCAST $dout, $x)
+>;
+
 #endif // AD_CONVERSION_GRADTOCORE

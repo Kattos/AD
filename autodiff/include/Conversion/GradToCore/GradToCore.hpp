@@ -11,6 +11,7 @@
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
 
 namespace mlir::autodiff {
@@ -45,6 +46,8 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value dx);
 
 Value dConv2DInput(PatternRewriter& rewriter, Value input);
 Value dConv2DBias(PatternRewriter& rewriter, Value bias);
+Value dReshape(PatternRewriter& rewriter, Value dx);
+Value dReduceSum(PatternRewriter& rewriter, Value dx);
 
 inline void LLVM_ATTRIBUTE_UNUSED
 populateWithGenerated(::mlir::RewritePatternSet& patterns);

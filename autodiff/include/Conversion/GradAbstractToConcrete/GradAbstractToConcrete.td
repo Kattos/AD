@@ -60,6 +60,16 @@ def UnaryToAvgPool2d : AbstractUnaryPat<
     (Constraint<CPred<"$0.str() == tosa::AvgPool2dOp::getOperationName()">> $op)
 >;
 
+def UnaryToReshape : AbstractUnaryPat<
+    (NativeCodeCall<"toConcreteWithAttrs<grad::ReshapeOp>($_builder, $0)"> $unary),
+    (Constraint<CPred<"$0.str() == tosa::ReshapeOp::getOperationName()">> $op)
+>;
+
+def UnaryToReduceSum : AbstractUnaryPat<
+    (Grad_ReduceSumOp $x, $dout),
+    (Constraint<CPred<"$0.str() == tosa::ReduceSumOp::getOperationName()">> $op)
+>;
+
 class AbstractBinaryPat<dag result, dag pred> : Pat<
     (Grad_AbstractBinaryOp:$binary $lhs, $rhs, $dout, $op),
     result,
