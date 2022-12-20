@@ -100,36 +100,53 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       backprop(builder, lhsOp, binary.getDlhs());
       backprop(builder, rhsOp, binary.getDrhs());
     } else {
-      SmallVector<PAIR> pairs;
+      // SmallVector<PAIR> pairs;
+
+      // SmallVector<Value> operands(op->getOperands());
+      // operands.emplace_back(dout);
+
+      // if (tosa::Conv2DOp::getOperationName() == op->getName().getStringRef())
+      // {
+      //   constexpr auto INPUT_SIZE = 2;
+
+      //   auto inputs = ValueRange{operands[0], operands[2]};
+
+      //   SmallVector<Type, INPUT_SIZE> types;
+      //   for (auto input : inputs) {
+      //     types.emplace_back(input.getType());
+      //   }
+      //   auto attrs = op->getAttrs();
+      //   auto grad = builder.create<grad::Conv2DOp>(loc, types, operands,
+      //   attrs);
+
+      //   pairs.reserve(INPUT_SIZE);
+      //   for (auto i = 0; i < 2; i++) {
+      //     pairs.emplace_back(getRelatedOperation(inputs[i]),
+      //                        grad->getResult(i));
+      //   }
+      // }
+
+      // if (pairs.empty()) {
+      //   return;
+      // }
+
+      // for (auto& [first, second] : pairs) {
+      //   backprop(builder, first, second);
+      // }
 
       SmallVector<Value> operands(op->getOperands());
       operands.emplace_back(dout);
 
-      if (tosa::Conv2DOp::getOperationName() == op->getName().getStringRef()) {
-        constexpr auto INPUT_SIZE = 2;
-
-        auto inputs = ValueRange{operands[0], operands[2]};
-
-        SmallVector<Type, INPUT_SIZE> types;
-        for (auto input : inputs) {
-          types.emplace_back(input.getType());
-        }
-        auto attrs = op->getAttrs();
-        auto grad = builder.create<grad::Conv2DOp>(loc, types, operands, attrs);
-
-        pairs.reserve(INPUT_SIZE);
-        for (auto i = 0; i < 2; i++) {
-          pairs.emplace_back(getRelatedOperation(inputs[i]),
-                             grad->getResult(i));
-        }
+      auto grad =
+          builder.create<grad::Conv2DOp>(loc, op->getOperandTypes(), operands);
+      for (auto attr : op->getAttrs()) {
+        grad->setAttr(attr.getName(), attr.getValue());
       }
-
-      if (pairs.empty()) {
-        return;
-      }
-
-      for (auto& [first, second] : pairs) {
-        backprop(builder, first, second);
+      for (size_t i = 0; i < grad->getNumOperands(); i++) {
+        auto operand = grad->getOperand(i);
+        auto owner = getRelatedOperation(operand);
+        auto derivative = grad->getResult(i);
+        backprop(builder, owner, derivative);
       }
     }
   }

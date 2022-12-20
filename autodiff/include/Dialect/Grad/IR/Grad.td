@@ -17,12 +17,12 @@ class Grad_Op<string mnemonic, list<Trait> traits = []> : Op<Grad_Dialect, mnemo
 def SameInputAndDerivativeType : NativeOpTrait<"SameInputAndDerivativeType">;
 
 class Grad_UnaryOp<string mnemonic, list<Trait> traits=[Pure]> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$x, AnyType:$dout);
-    let results = (outs AnyType:$dx);
+    let arguments = (ins AnyType: $x, AnyType: $dout);
+    let results = (outs AnyType: $dx);
 }
 
 def Grad_AbstractUnaryOp : Grad_UnaryOp<"abstract_unary"> {
-    let arguments = (ins AnyType:$x, AnyType:$dout, StrAttr:$op);
+    let arguments = (ins AnyType: $x, AnyType: $dout, StrAttr: $op);
 }
 
 def Grad_AbsOp : Grad_UnaryOp<"abs", [SameOperandsAndResultType]>;
@@ -36,7 +36,7 @@ def Grad_RsqrtOp : Grad_UnaryOp<"rsqrt", [SameOperandsAndResultType]>;
 def Grad_TanhOp :  Grad_UnaryOp<"tanh", [SameOperandsAndResultType]>;
 
 def Grad_ClampOp : Grad_UnaryOp<"clamp", [SameOperandsAndResultType]> {
-    let arguments = (ins AnyType:$x, AnyType:$dout, I64Attr:$min_int, I64Attr:$max_int, F32Attr:$min_fp, F32Attr:$max_fp);
+    let arguments = (ins AnyType: $x, AnyType: $dout, I64Attr: $min_int, I64Attr: $max_int, F32Attr: $min_fp, F32Attr: $max_fp);
 }
 
 def Grad_NegateOp : Grad_UnaryOp<"negate", [SameOperandsAndResultType]>;
@@ -56,12 +56,12 @@ def Grad_ReshapeOp : Grad_UnaryOp<"reshape"> {
 def Grad_ReduceSumOp : Grad_UnaryOp<"reduce_sum">;
 
 class Grad_BinaryOp<string mnemonic, list<Trait> traits = [SameInputAndDerivativeType]> : Grad_Op<mnemonic, traits> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout);
-    let results = (outs AnyType:$dlhs, AnyType:$drhs);
+    let arguments = (ins AnyType: $lhs, AnyType: $rhs, AnyType: $dout);
+    let results = (outs AnyType: $dlhs, AnyType: $drhs);
 }
 
 def Grad_AbstractBinaryOp : Grad_BinaryOp<"abstract_binary"> {
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs, AnyType:$dout, StrAttr:$op);
+    let arguments = (ins AnyType: $lhs, AnyType: $rhs, AnyType: $dout, StrAttr: $op);
 }
 
 def Grad_AddOp : Grad_BinaryOp<"add">;
@@ -80,44 +80,45 @@ def Grad_AnyNumber : AnyTypeOf<[AnyInteger, AnyFloat]>;
 
 def Grad_AvgPool2dOp : Grad_UnaryOp<"avg_pool2d"> {
     let arguments = (ins
-        Grad_Tensor4D:$x,
-        Grad_Tensor4D:$dout,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$kernel,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad
+        Grad_Tensor4D: $x,
+        Grad_Tensor4D: $dout,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $kernel,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $stride,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>: $pad
     );
 
-    let results = (outs 4DTensorOf<[Grad_AnyNumber]>:$dx);
+    let results = (outs 4DTensorOf<[Grad_AnyNumber]>: $dx);
 }
 
 // TODO: add `SameInputAndDerivativeType` trait
 def Grad_Conv2DOp : Grad_Op<"conv2d"> {
     let arguments = (ins
-        Grad_Tensor4D:$x,
-        Grad_Tensor4D:$weight,
-        Grad_Tensor1D:$bias,
-        Grad_Tensor4D:$dout,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$dilation,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>:$stride,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>:$pad
+        Grad_Tensor4D: $x,
+        Grad_Tensor4D: $weight,
+        Grad_Tensor1D: $bias,
+        Grad_Tensor4D: $dout,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $dilation,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $stride,
+        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>: $pad
     );
 
     let results = (outs 
-        Grad_Tensor4D:$dx,
-        Grad_Tensor1D:$dbias
+        Grad_Tensor4D: $dx,
+        Grad_Tensor4D: $dweight,
+        Grad_Tensor1D: $dbias
     );
 }
 
 def Grad_MatMulOp : Grad_BinaryOp<"matmul"> {
     let arguments = (ins
-        Grad_Tensor3D:$lhs,
-        Grad_Tensor3D:$rhs,
-        Grad_Tensor3D:$dout
+        Grad_Tensor3D: $lhs,
+        Grad_Tensor3D: $rhs,
+        Grad_Tensor3D: $dout
     );
 
     let results = (outs
-        Grad_Tensor3D:$dlhs,
-        Grad_Tensor3D:$drhs
+        Grad_Tensor3D: $dlhs,
+        Grad_Tensor3D: $drhs
     );
 }
 

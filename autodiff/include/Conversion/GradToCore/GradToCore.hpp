@@ -47,7 +47,6 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value dx);
 Value dConv2DInput(PatternRewriter& rewriter, Value input);
 Value dConv2DBias(PatternRewriter& rewriter, Value bias);
 Value dReshape(PatternRewriter& rewriter, Value dx);
-Value dReduceSum(PatternRewriter& rewriter, Value dx);
 
 inline void LLVM_ATTRIBUTE_UNUSED
 populateWithGenerated(::mlir::RewritePatternSet& patterns);

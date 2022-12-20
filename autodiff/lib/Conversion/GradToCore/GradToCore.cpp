@@ -4,7 +4,6 @@
 #include "Conv2D.cpp"
 #include "GradToCoreImpl.cpp"
 #include "MatMul.cpp"
-#include "ReduceSum.cpp"
 #include "Reshape.cpp"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
@@ -16,7 +15,7 @@ using namespace grad::core;
 class GradToCore : public impl::GradToCoreBase<GradToCore> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
-    patterns.add<GradMatMulToCore>(&getContext());
+    patterns.add<GradMatMulToCore, GradConv2DToCore>(&getContext());
     grad::core::populateWithGenerated(patterns);
     (void)applyPatternsAndFoldGreedily(getOperation(), std::move(patterns));
   }

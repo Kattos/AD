@@ -127,13 +127,13 @@ def AvgPool2dToCore : Pat<
     (NativeCodeCall<"dAvgPool2d($_builder, $0)"> $dx)
 >;
 
-def Conv2DToCore : Pattern<
-    (Grad_Conv2DOp:$dx $x, $dout, $weight, $bias, $dilation, $stride, $pad),
-    [
-        (NativeCodeCall<"dConv2DInput($_builder, $0)"> $dx__0),
-        (NativeCodeCall<"dConv2DBias($_builder, $0)"> $dx__1) // TODO: finish this
-    ]
->;
+// def Conv2DToCore : Pattern<
+//     (Grad_Conv2DOp:$dx $x, $dout, $weight, $bias, $dilation, $stride, $pad),
+//     [
+//         (NativeCodeCall<"dConv2DInput($_builder, $0)"> $dx__0),
+//         (NativeCodeCall<"dConv2DBias($_builder, $0)"> $dx__1) // TODO: finish this
+//     ]
+// >;
 
 def ReshapeToCore : Pat<
     (Grad_ReshapeOp:$dx $x, $dout, $new_shape),
