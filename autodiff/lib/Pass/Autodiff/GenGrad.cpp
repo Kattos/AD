@@ -11,34 +11,6 @@
 namespace mlir {
 namespace autodiff {
 
-using PAIR = std::pair<Operation*, Value>;
-
-template <typename GradTy>
-SmallVector<PAIR> toGrad(OpBuilder& builder, Operation* primal,
-                         ArrayRef<Value> inputs, Value dout,
-                         SmallVector<PAIR> pairs) {
-  SmallVector<Type> types;
-  types.reserve(inputs.size());
-  for (auto input : inputs) {
-    types.emplace_back(input.getType());
-  }
-
-  SmallVector<Value> operands(primal->getOperands());
-  operands.emplace_back(dout);
-
-  auto loc = builder.getUnknownLoc();
-  auto attrs = primal->getAttrs();
-  auto grad = builder.create<GradTy>(loc, types, operands, attrs);
-
-  pairs.reserve(inputs.size());
-  for (size_t i = 0; i < inputs.size(); ++i) {
-    pairs.emplace_back(
-        std::make_pair(getRelatedOperation(inputs[i]), grad->getResult(i)));
-  }
-
-  return pairs;
-}
-
 class GenGradPass : public GenGradPassBase<GenGradPass> {
   const StringRef REQGRAD = "requires_grad";
   std::map<int64_t, Value> cache;
@@ -100,40 +72,6 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       backprop(builder, lhsOp, binary.getDlhs());
       backprop(builder, rhsOp, binary.getDrhs());
     } else {
-      // SmallVector<PAIR> pairs;
-
-      // SmallVector<Value> operands(op->getOperands());
-      // operands.emplace_back(dout);
-
-      // if (tosa::Conv2DOp::getOperationName() == op->getName().getStringRef())
-      // {
-      //   constexpr auto INPUT_SIZE = 2;
-
-      //   auto inputs = ValueRange{operands[0], operands[2]};
-
-      //   SmallVector<Type, INPUT_SIZE> types;
-      //   for (auto input : inputs) {
-      //     types.emplace_back(input.getType());
-      //   }
-      //   auto attrs = op->getAttrs();
-      //   auto grad = builder.create<grad::Conv2DOp>(loc, types, operands,
-      //   attrs);
-
-      //   pairs.reserve(INPUT_SIZE);
-      //   for (auto i = 0; i < 2; i++) {
-      //     pairs.emplace_back(getRelatedOperation(inputs[i]),
-      //                        grad->getResult(i));
-      //   }
-      // }
-
-      // if (pairs.empty()) {
-      //   return;
-      // }
-
-      // for (auto& [first, second] : pairs) {
-      //   backprop(builder, first, second);
-      // }
-
       SmallVector<Value> operands(op->getOperands());
       operands.emplace_back(dout);
 

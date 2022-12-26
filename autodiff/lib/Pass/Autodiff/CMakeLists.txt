@@ -1,7 +1,6 @@
 add_llvm_library(ADAutodiffPass
-    Naive.cpp
-    Experimental.cpp
     GenGrad.cpp
+    GradGeneric.cpp
     Pipeline.cpp
     
     DEPENDS

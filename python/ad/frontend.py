@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Union
-from ad.compatible import convert_lines_to_ad, convert_lines_to_iree
+from ad.compat import convert_lines_to_ad, convert_lines_to_iree
 
 from ad.intermediate import IR, AdIR, IreeIR, TosaIR
 

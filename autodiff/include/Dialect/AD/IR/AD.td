@@ -85,16 +85,6 @@ def AD_ReduceOp : AD_Op<"reduce", [SameToAndResultType, SameOperandsElementType]
     ];
 }
 
-// TODO: remove `from`, `to` and `return` if they are useless
-def AD_FromOp : AD_Op<"from"> {
-    let arguments = (ins AnyType:$input);
-}
-
-def AD_ToOp : AD_Op<"to", [SameOperandsAndResultType]> {
-    let arguments = (ins AnyType:$input);
-    let results = (outs AnyType:$output);
-}
-
 def AD_ReturnOp : AD_Op<"return"> {
     let arguments = (ins AnyType:$argument, AnyType:$grad);
 }
@@ -102,22 +92,6 @@ def AD_ReturnOp : AD_Op<"return"> {
 def AD_PlaceholderOp : AD_Op<"placeholder", [SameOperandsAndResultType]> {
     let arguments = (ins AnyType:$input);
     let results = (outs AnyType:$output);
-}
-
-// TODO: remove following ops
-def AD_AbsOp : AD_Op<"abs", [SameOperandsAndResultType]> {
-    let arguments = (ins AnyType:$x);
-    let results = (outs AnyType:$dx);
-}
-
-def AD_RsqrtOp : AD_Op<"rsqrt", [SameOperandsAndResultType]> {
-    let arguments = (ins AnyType:$x);
-    let results = (outs AnyType:$dx);
-}
-
-def AD_GradAbsOp : AD_Op<"grad_abs"> {
-    let arguments = (ins AnyType:$x, AnyType:$grad);
-    let results = (outs AnyType:$dx);
 }
 
 #endif // AD_OPS

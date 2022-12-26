@@ -23,8 +23,8 @@ void registerAllPasses() {
   // TODO: register all passes needed here
   registerAutodiffPasses();
   registerConversionPasses();
-  registerTosaConversionPasses();
-  registerSimplifyPasses();
+  // registerTosaConversionPasses();
+  // registerSimplifyPasses();
 
   registerAutodiffPipeline();
 }

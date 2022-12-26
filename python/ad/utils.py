@@ -1,3 +1,4 @@
+from functools import wraps
 from time import perf_counter, process_time, process_time_ns
 from typing import Callable
 import re
@@ -6,6 +7,7 @@ __all__ = ["timer_s", "timer_us", "timer_ns"]
 
 
 def timer_general(func: Callable, counter: Callable, unit: str) -> Callable:
+    @wraps(func)
     def wrapper(*args, **kwargs):
         time_start = counter()
         res = func(*args, **kwargs)

@@ -3,25 +3,16 @@
 
 include "mlir/Pass/PassBase.td"
 
-// TODO: remove deprecated pass
-def NaivePass : Pass<"ad-naive"> {
-    let summary = "Apply autodiff on preprocessed functions naively";
-    let constructor = "mlir::autodiff::createADNaivePass()";
-
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::scf::SCFDialect", "mlir::tosa::TosaDialect"];
-}
-
-// TODO: rename this pass
-def ExperimentalPass : Pass<"ad-experimental"> {
-    let summary = "New features under development";
-    let constructor = "mlir::autodiff::createADExperimentalPass()";
-
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::scf::SCFDialect", "mlir::tosa::TosaDialect"];
-}
-
 def GenGradPass : Pass<"ad-gen-grad"> {
     let summary = "Generate gradients using `grad` ops";
     let constructor = "mlir::autodiff::createADGenGradPass()";
+
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::autodiff::grad::GradDialect"];
+}
+
+def GradGenericPass : Pass<"ad-grad-generic"> {
+    let summary = "Generate gradients for `linalg.geneirc` ops";
+    let constructor = "mlir::autodiff::createADGradGenericPass()";
 
     let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::autodiff::grad::GradDialect"];
 }

@@ -3,12 +3,11 @@ from enum import Enum
 from typing import List, Union
 import os
 import subprocess
-from ad.compatible import convert_lines_to_ad, convert_lines_to_iree
+from ad.compat import convert_lines_to_iree
 
 from mlir.ir import Module
 
 from ad.backend import Executable, TosaExecutable
-from ad.utils import all_alloc_to_init
 
 __all__ = ["autodiff", "TosaIR"]
 
