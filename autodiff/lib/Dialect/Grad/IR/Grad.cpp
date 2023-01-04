@@ -2,6 +2,7 @@
 
 #define GET_OP_CLASSES
 #include "Dialect/Grad/IR/Grad.cpp.inc"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 
 namespace mlir {
 namespace OpTrait {
@@ -73,4 +74,18 @@ LogicalResult verifySameInputAndDerivativeType(Operation* op) {
 
 }  // namespace impl
 }  // namespace OpTrait
+
+namespace autodiff {
+namespace grad {
+
+LogicalResult NablaOp::verifySymbolUses(SymbolTableCollection& symbolTable) {
+  if (auto func = symbolTable.lookupNearestSymbolFrom<func::FuncOp>(
+          *this, getFuncAttr())) {
+    return success();
+  }
+  return emitOpError() << getFunc() << " not found";
+}
+
+}  // namespace grad
+}  // namespace autodiff
 }  // namespace mlir

@@ -13,6 +13,7 @@ namespace autodiff {
 
 std::unique_ptr<Pass> createADGenGradPass();
 std::unique_ptr<Pass> createADGradGenericPass();
+std::unique_ptr<Pass> createExperimentalPass();
 
 void registerAutodiffPipeline();
 

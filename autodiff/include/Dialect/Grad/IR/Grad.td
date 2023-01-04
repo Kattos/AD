@@ -2,6 +2,7 @@
 #define GRAD_OPS
 
 include "mlir/IR/OpBase.td"
+include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 
@@ -119,6 +120,17 @@ def Grad_MatMulOp : Grad_BinaryOp<"matmul"> {
     let results = (outs
         Grad_Tensor3D: $dlhs,
         Grad_Tensor3D: $drhs
+    );
+}
+
+def Grad_NablaOp : Grad_Op<"nabla", [DeclareOpInterfaceMethods<SymbolUserOpInterface>]> {
+    let arguments = (ins
+        FlatSymbolRefAttr:$func,
+        Variadic<AnyTensor>:$inputs
+    );
+
+    let results = (outs 
+        Variadic<AnyTensor>:$outputs
     );
 }
 

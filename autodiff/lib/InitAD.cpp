@@ -3,6 +3,7 @@
 #include "Conversion/Conversion.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Dialect/Grad/IR/GradDialect.hpp"
+#include "Dialect/Grad/IR/GradInterface.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "Pass/Simplify/Passes.hpp"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
@@ -43,6 +44,8 @@ void registerAllDialects(DialectRegistry &registry) {
 
   registry.insert<ad::ADDialect>();
   registry.insert<grad::GradDialect>();
+
+  registerArithAdjoint(registry);
 }
 
 }  // namespace autodiff
