@@ -8,7 +8,8 @@
 namespace mlir {
 namespace autodiff {
 void registerAllPasses();
-void registerAllDialects(DialectRegistry &registry);
+void registerAllDialects(DialectRegistry& registry);
+void registerExtensions(DialectRegistry& registry);
 }  // namespace autodiff
 }  // namespace mlir
 

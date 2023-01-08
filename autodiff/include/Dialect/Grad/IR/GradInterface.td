@@ -3,7 +3,7 @@
 
 include "mlir/IR/OpBase.td"
 
-def AdjointInterface : OpInterface<"AdjointInterface"> {
+def PartialInterface : OpInterface<"PartialInterface"> {
     let description = [{
        Generate partial derivative for each input of the operation 
     }];
@@ -13,10 +13,16 @@ def AdjointInterface : OpInterface<"AdjointInterface"> {
     let methods = [
         InterfaceMethod<
             /*desc*/ "Generate partial derivative for each input of the operation",
-            /*retTy*/ "::mlir::ValueRange",
-            /*methodName*/ "adjoint",
+            /*retTy*/ "llvm::SmallVector<::mlir::Value>",
+            /*methodName*/ "partial",
             /*args*/ (ins "::mlir::OpBuilder&":$builder)
-        >
+        >,
+        InterfaceMethod<
+            "Generate partial derivative for specified input",
+            "::mlir::Value",
+            "partialFor",
+            (ins "::mlir::OpBuilder&":$builder, "unsigned int":$index)
+        >,
     ];
 }
 

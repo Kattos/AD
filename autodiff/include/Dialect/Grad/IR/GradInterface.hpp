@@ -8,7 +8,8 @@
 
 namespace mlir {
 namespace autodiff {
-void registerArithAdjoint(DialectRegistry& registry);
+void registerArithPartial(DialectRegistry& registry);
+void registerMathPartial(DialectRegistry& registry);
 }  // namespace autodiff
 }  // namespace mlir
 

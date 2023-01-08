@@ -1,4 +1,4 @@
-#include "InitAD.h"
+#include "InitAD.hpp"
 
 #include "Conversion/Conversion.hpp"
 #include "Dialect/AD/IR/ADDialect.hpp"
@@ -30,7 +30,7 @@ void registerAllPasses() {
   registerAutodiffPipeline();
 }
 
-void registerAllDialects(DialectRegistry &registry) {
+void registerAllDialects(DialectRegistry& registry) {
   // TODO: register all dialects needed here
   registry.insert<func::FuncDialect>();
   registry.insert<tosa::TosaDialect>();
@@ -44,8 +44,11 @@ void registerAllDialects(DialectRegistry &registry) {
 
   registry.insert<ad::ADDialect>();
   registry.insert<grad::GradDialect>();
+}
 
-  registerArithAdjoint(registry);
+void registerExtensions(DialectRegistry& registry) {
+  registerArithPartial(registry);
+  registerMathPartial(registry);
 }
 
 }  // namespace autodiff

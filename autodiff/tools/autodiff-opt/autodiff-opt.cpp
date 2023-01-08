@@ -2,7 +2,7 @@
 //
 // Based on mlir-opt but registers the passes and dialects we care about.
 
-#include "InitAD.h"
+#include "InitAD.hpp"
 #include "llvm/Support/raw_ostream.h"
 #include "mlir/IR/DialectRegistry.h"
 #include "mlir/InitAllDialects.h"
@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
 
   mlir::DialectRegistry registry;
   mlir::autodiff::registerAllDialects(registry);
+  mlir::autodiff::registerExtensions(registry);
 
   return mlir::failed(mlir::MlirOptMain(
       argc, argv, "Autodiff modular optimizer driver\n", registry));
