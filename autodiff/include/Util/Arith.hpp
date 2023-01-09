@@ -1,5 +1,5 @@
-#ifndef AD_ARITH_HPP
-#define AD_ARITH_HPP
+#ifndef AD_UTIL_ARITH_HPP
+#define AD_UTIL_ARITH_HPP
 
 #include "mlir/Dialect/Arith/IR/Arith.h"
 
@@ -17,4 +17,4 @@ Value mul(Value lhs, Value rhs, OpBuilder& builder);
 }  // namespace autodiff
 }  // namespace mlir
 
-#endif  // AD_ARITH_HPP
+#endif  // AD_UTIL_ARITH_HPP

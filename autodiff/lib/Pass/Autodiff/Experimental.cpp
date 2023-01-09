@@ -3,6 +3,7 @@
 #include "Dialect/Grad/IR/GradInterface.hpp"
 #include "GenericWrapper.hpp"
 #include "Pass/Autodiff/Passes.hpp"
+#include "Util/Generic.hpp"
 #include "Util/Tape.hpp"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -18,25 +19,23 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
   void runOnOperation() override {
     auto module = getOperation();
     OpBuilder builder(module);
-    // auto loc = builder.getUnknownLoc();
+    auto loc = builder.getUnknownLoc();
 
     module->walk([&](func::FuncOp func) {
-      auto inputs = func.getArguments();
       auto returnOp = &*func.front().rbegin();
-      auto outputs = returnOp->getOperands();
+      func.walk([&](linalg::GenericOp generic) {
+        auto reverser = util::generic::Reverser(generic);
+        builder.setInsertionPointAfter(generic);
 
-      builder.setInsertionPoint(returnOp);
-      auto tape = util::tape::Tape::record(inputs, outputs, builder);
-      SmallVector<Value> newOutputs;
-      for (auto input : inputs) {
-        newOutputs.emplace_back(tape.get(input));
-      }
-      returnOp->setOperands(newOutputs);
+        auto ones = builder.create<ad::OneslikeOp>(loc, generic->getResult(0));
+        auto results = reverser.reverse(builder, ones)->getResults();
 
-      auto funcType = func.getFunctionType();
-      auto newFuncType =
-          builder.getFunctionType(funcType.getInputs(), funcType.getInputs());
-      func.setFunctionType(newFuncType);
+        returnOp->setOperands(results);
+        auto funcType = func.getFunctionType();
+        auto newFuncType = builder.getFunctionType(funcType.getInputs(),
+                                                   returnOp->getOperandTypes());
+        func.setFunctionType(newFuncType);
+      });
     });
   }
 
@@ -98,6 +97,30 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
       if (auto intf = dyn_cast<PartialInterface>(op)) {
         auto derivatives = intf.partial(builder);
       }
+    });
+  }
+
+  void testTape() {
+    auto module = getOperation();
+    OpBuilder builder(module);
+
+    module->walk([&](func::FuncOp func) {
+      auto inputs = func.getArguments();
+      auto returnOp = &*func.front().rbegin();
+      auto outputs = returnOp->getOperands();
+
+      builder.setInsertionPoint(returnOp);
+      auto tape = util::tape::record(inputs, outputs, builder);
+      SmallVector<Value> newOutputs;
+      for (auto input : inputs) {
+        newOutputs.emplace_back(tape.get(input));
+      }
+      returnOp->setOperands(newOutputs);
+
+      auto funcType = func.getFunctionType();
+      auto newFuncType =
+          builder.getFunctionType(funcType.getInputs(), funcType.getInputs());
+      func.setFunctionType(newFuncType);
     });
   }
 };

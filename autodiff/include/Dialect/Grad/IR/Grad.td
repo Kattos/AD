@@ -125,12 +125,23 @@ def Grad_MatMulOp : Grad_BinaryOp<"matmul"> {
 
 def Grad_NablaOp : Grad_Op<"nabla", [DeclareOpInterfaceMethods<SymbolUserOpInterface>]> {
     let arguments = (ins
-        FlatSymbolRefAttr:$func,
-        Variadic<AnyTensor>:$inputs
+        FlatSymbolRefAttr: $func,
+        Variadic<AnyTensor>: $inputs
     );
 
     let results = (outs 
-        Variadic<AnyTensor>:$outputs
+        Variadic<AnyTensor>: $outputs
+    );
+}
+
+def Grad_GradientOp : Grad_Op<"gradient"> {
+    let arguments = (ins
+        AnyFloat: $target,
+        AnyFloat: $source
+    );
+
+    let results = (outs
+        AnyFloat: $gradient
     );
 }
 

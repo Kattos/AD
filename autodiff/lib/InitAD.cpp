@@ -16,16 +16,17 @@
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/Pass/PassRegistry.h"
+#include "mlir/Transforms/Passes.h"
 
 namespace mlir {
 namespace autodiff {
 
 void registerAllPasses() {
+  registerCanonicalizerPass();
+
   // TODO: register all passes needed here
   registerAutodiffPasses();
   registerConversionPasses();
-  // registerTosaConversionPasses();
-  // registerSimplifyPasses();
 
   registerAutodiffPipeline();
 }

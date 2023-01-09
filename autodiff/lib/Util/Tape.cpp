@@ -63,7 +63,13 @@ SmallVector<Path> navigate(Value from, Value to) {
   return paths;
 }
 
-Tape Tape::record(ValueRange ins, ValueRange outs, OpBuilder& builder) {
+Value Tape::get(Value in) { return tape[in]; }
+
+Value Tape::get(Value in, OpBuilder& builder) {
+  return tape[in] ? tape[in] : arith::constant(0.0, builder);
+}
+
+Tape record(ValueRange ins, ValueRange outs, OpBuilder& builder) {
   Tape instance;
   for (auto in : ins) {
     for (auto out : outs) {
@@ -78,8 +84,6 @@ Tape Tape::record(ValueRange ins, ValueRange outs, OpBuilder& builder) {
   }
   return instance;
 }
-
-Value Tape::get(Value in) { return tape[in]; }
 
 }  // namespace tape
 }  // namespace util

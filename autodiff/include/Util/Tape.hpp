@@ -1,5 +1,5 @@
-#ifndef AD_TAPE_HPP
-#define AD_TAPE_HPP
+#ifndef AD_UTIL_TAPE_HPP
+#define AD_UTIL_TAPE_HPP
 
 #include "Dialect/AD/IR/AD.hpp"
 #include "Dialect/Grad/IR/Grad.hpp"
@@ -25,20 +25,23 @@ class Path {
 };
 
 class Tape {
+  friend Tape record(ValueRange ins, ValueRange outs, OpBuilder& builder);
+
  private:
   DenseMap<Value, Value> tape;
   Tape() = default;
 
  public:
-  static Tape record(ValueRange ins, ValueRange outs, OpBuilder& builder);
   Value get(Value in);
+  Value get(Value in, OpBuilder& builder);
 };
 
 SmallVector<Path> navigate(Value from, Value to);
+Tape record(ValueRange ins, ValueRange outs, OpBuilder& builder);
 
 }  // namespace tape
 }  // namespace util
 }  // namespace autodiff
 }  // namespace mlir
 
-#endif  // AD_TAPE_HPP
+#endif  // AD_UTIL_TAPE_HPP

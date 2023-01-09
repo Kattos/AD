@@ -1,0 +1,79 @@
+#include "Util/Generic.hpp"
+
+#include "Dialect/AD/IR/AD.hpp"
+#include "Util/Tape.hpp"
+#include "mlir/IR/BlockAndValueMapping.h"
+
+namespace mlir {
+namespace autodiff {
+namespace util {
+namespace generic {
+
+linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
+  auto loc = builder.getUnknownLoc();
+
+  auto forwardInputs = forward.getInputs();
+  auto reverseInputs = SmallVector<Value>(forwardInputs);
+  reverseInputs.emplace_back(dout);
+
+  SmallVector<Value> reverseOutputs;
+  SmallVector<Type> reverseTypes;
+
+  llvm::transform(
+      forwardInputs, std::back_inserter(reverseOutputs),
+      [&](Value value) { return builder.create<ad::ZeroslikeOp>(loc, value); });
+
+  llvm::transform(forwardInputs, std::back_inserter(reverseTypes),
+                  [&](Value value) { return value.getType(); });
+
+  auto forwardMaps = forward.getIndexingMapsArray();
+  auto reverseMaps = SmallVector<AffineMap>(forwardMaps);
+  std::transform(forwardMaps.begin(), forwardMaps.end() - 1,
+                 std::back_inserter(reverseMaps),
+                 [](AffineMap map) { return map; });
+
+  auto reverseIters = forward.getIteratorTypesArray();
+
+  auto forwardBody = forward.getBody();
+
+  auto reverseBody = [&](OpBuilder& builder, Location loc, ValueRange args) {
+    BlockAndValueMapping mapping;
+    for (auto i = 0u; i < forwardBody->getNumArguments(); i++) {
+      mapping.map(forwardBody->getArgument(i), args[i]);
+    }
+
+    SmallVector<Operation*> cloned;
+    llvm::for_each(*forwardBody, [&](decltype(*forwardBody->begin()) op) {
+      cloned.emplace_back(builder.clone(op, mapping));
+    });
+
+    auto yield = cloned.back();
+    auto outputs = yield->getOperands();
+    auto inputs = args.take_front(forwardInputs.size());
+    auto tape = util::tape::record(inputs, outputs, builder);
+
+    yield->erase();
+    SmallVector<Value> grads;
+    // llvm::transform(inputs, std::back_inserter(grads),
+    //                 [&](Value value) { return tape.get(value); });
+
+    for (auto in : inputs) {
+      for (auto out : outputs) {
+        auto grad =
+            builder.create<grad::GradientOp>(loc, in.getType(), out, in);
+        grads.emplace_back(grad);
+      }
+    }
+
+    builder.create<linalg::YieldOp>(loc, grads);
+  };
+
+  return builder.create<linalg::GenericOp>(loc, reverseTypes, reverseInputs,
+                                           reverseOutputs, reverseMaps,
+                                           reverseIters, reverseBody);
+}
+
+}  // namespace generic
+}  // namespace util
+}  // namespace autodiff
+}  // namespace mlir

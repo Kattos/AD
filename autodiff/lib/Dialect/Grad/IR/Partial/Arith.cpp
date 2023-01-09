@@ -1,6 +1,7 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 
 #include "Dialect/Grad/IR/GradInterface.hpp"
+#include "Util/Arith.hpp"
 
 namespace mlir {
 namespace autodiff {
@@ -83,11 +84,43 @@ class SubFPartial
   }
 };
 
+class DivFPartial
+    : public PartialInterface::ExternalModel<DivFPartial, arith::DivFOp> {
+ public:
+  SmallVector<Value> partial(Operation* op, OpBuilder& builder) const {
+    return {};
+  }
+
+  Value partialFor(Operation* op, OpBuilder& builder,
+                   unsigned int index) const {
+    if (index >= op->getNumOperands()) {
+      return nullptr;
+    }
+
+    auto divf = cast<arith::DivFOp>(op);
+    auto lhs = divf.getLhs();
+    auto rhs = divf.getRhs();
+
+    auto one = util::arith::constant(0.0, builder);
+    auto loc = builder.getUnknownLoc();
+
+    if (index == 0) {
+      return builder.create<arith::DivFOp>(loc, one, rhs);
+    }
+
+    auto square = util::arith::mul(rhs, rhs, builder);
+    auto neg = util::arith::constant(-1.0, builder);
+    auto negSquare = util::arith::mul(square, neg, builder);
+    return builder.create<arith::DivFOp>(loc, lhs, negSquare);
+  }
+};
+
 void registerArithPartial(DialectRegistry& registry) {
   registry.addExtension(+[](MLIRContext* context, arith::ArithDialect*) {
     arith::AddFOp::attachInterface<AddFPartial>(*context);
     arith::MulFOp::attachInterface<MulFPartial>(*context);
     arith::SubFOp::attachInterface<SubFPartial>(*context);
+    arith::DivFOp::attachInterface<DivFPartial>(*context);
   });
 }
 
