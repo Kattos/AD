@@ -14,6 +14,14 @@ class Reverser {
 
  public:
   Reverser(linalg::GenericOp forward) : forward(forward) {}
+
+  /**
+   * @brief build generic op in reverse mode
+   *
+   * @param builder
+   * @param dout backprop contribution
+   * @return linalg::GenericOp
+   */
   linalg::GenericOp reverse(OpBuilder& builder, Value dout);
 };
 

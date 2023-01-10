@@ -1,6 +1,8 @@
 #include "Util/Generic.hpp"
 
 #include "Dialect/AD/IR/AD.hpp"
+#include "Util/Arith.hpp"
+#include "Util/Bufferization.hpp"
 #include "Util/Tape.hpp"
 #include "mlir/IR/BlockAndValueMapping.h"
 
@@ -21,7 +23,7 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
 
   llvm::transform(
       forwardInputs, std::back_inserter(reverseOutputs),
-      [&](Value value) { return builder.create<ad::ZeroslikeOp>(loc, value); });
+      [&](Value value) { return util::bufferization::alloc(value, builder); });
 
   llvm::transform(forwardInputs, std::back_inserter(reverseTypes),
                   [&](Value value) { return value.getType(); });
@@ -38,14 +40,14 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
 
   auto reverseBody = [&](OpBuilder& builder, Location loc, ValueRange args) {
     BlockAndValueMapping mapping;
-    for (auto i = 0u; i < forwardBody->getNumArguments(); i++) {
-      mapping.map(forwardBody->getArgument(i), args[i]);
-    }
+    mapping.map(forwardBody->getArguments(),
+                args.take_front(reverseInputs.size()));
 
     SmallVector<Operation*> cloned;
-    llvm::for_each(*forwardBody, [&](decltype(*forwardBody->begin()) op) {
-      cloned.emplace_back(builder.clone(op, mapping));
-    });
+
+    using Ty = decltype(*forwardBody->begin());
+    llvm::transform(*forwardBody, std::back_inserter(cloned),
+                    [&](Ty op) { return builder.clone(op, mapping); });
 
     auto yield = cloned.back();
     auto outputs = yield->getOperands();
@@ -54,8 +56,6 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
 
     yield->erase();
     SmallVector<Value> grads;
-    // llvm::transform(inputs, std::back_inserter(grads),
-    //                 [&](Value value) { return tape.get(value); });
 
     for (auto in : inputs) {
       for (auto out : outputs) {
@@ -65,7 +65,16 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
       }
     }
 
-    builder.create<linalg::YieldOp>(loc, grads);
+    auto dout = args[forwardInputs.size()];
+    SmallVector<Value> yields;
+    for (auto pair : llvm::zip(grads, args.take_back(grads.size()))) {
+      auto add =
+          util::arith::add(std::get<0>(pair), std::get<1>(pair), builder);
+      auto yield = util::arith::mul(dout, add, builder);
+      yields.emplace_back(yield);
+    }
+
+    builder.create<linalg::YieldOp>(loc, yields);
   };
 
   return builder.create<linalg::GenericOp>(loc, reverseTypes, reverseInputs,

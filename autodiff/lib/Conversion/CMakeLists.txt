@@ -3,6 +3,7 @@ add_llvm_library(ADConversion
     GradToCore/GradToCore.cpp
     GradToCore/Utils.cpp
     GradAbstractToConcrete/GradAbstractToConcrete.cpp
+    LinalgExtConversion/LinalgExtConversion.cpp
 
     DEPENDS
     ADConversionGen

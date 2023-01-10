@@ -32,4 +32,18 @@ def GradAbstractToConcrete : Pass<"grad-concrete"> {
     let dependentDialects = ["mlir::autodiff::grad::GradDialect", "mlir::tosa::TosaDialect"];
 }
 
+def InitTensorToAllocTensor : Pass<"init-tensor-to-alloc-tensor"> {
+    let summary = "Convert `linalgext.init_tensor` to `bufferization.alloc_tensor`";
+    let constructor = "mlir::autodiff::createInitTensorToAllocTensor()";
+
+    let dependentDialects = ["mlir::autodiff::linalgext::LinalgExtDialect", "mlir::bufferization::BufferizationDialect"];
+}
+
+def AllocTensorToInitTensor : Pass<"alloc-tensor-to-init-tensor"> {
+    let summary = "Convert `bufferization.alloc_tensor` to `linalgext.init_tensor`";
+    let constructor = "mlir::autodiff::createAllocTensorToInitTensor()";
+
+    let dependentDialects = ["mlir::autodiff::linalgext::LinalgExtDialect", "mlir::bufferization::BufferizationDialect"];
+}
+
 #endif // AD_CONVERSION_PASSES

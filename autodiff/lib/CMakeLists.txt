@@ -15,4 +15,5 @@ add_llvm_library(InitAD
     ADRules
     ADUtils
     GradDialect
+    LinalgExtDialect
 )

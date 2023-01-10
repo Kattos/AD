@@ -3,6 +3,7 @@
 
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Dialect/Grad/IR/GradDialect.hpp"
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/IR/DialectRegistry.h"
@@ -15,6 +16,7 @@ std::unique_ptr<Pass> createADGenGradPass();
 std::unique_ptr<Pass> createADGradGenericPass();
 std::unique_ptr<Pass> createExperimentalPass();
 
+void registerTosaToLinalgPipeline();
 void registerAutodiffPipeline();
 
 }  // namespace autodiff
