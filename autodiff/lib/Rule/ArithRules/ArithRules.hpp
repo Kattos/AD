@@ -1,22 +1,22 @@
 #include "Rule/Rules.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir::autodiff {
 
-using ArithAddIRule = BinaryOpRule<arith::AddIOp>;
-using ArithAddFRule = BinaryOpRule<arith::AddFOp>;
-using ArithSubIRule = BinaryOpRule<arith::SubIOp>;
-using ArithSubFRule = BinaryOpRule<arith::SubFOp>;
-using ArithMulIRule = BinaryOpRule<arith::MulIOp>;
-using ArithMulFRule = BinaryOpRule<arith::MulFOp>;
-using ArithDivFRule = BinaryOpRule<arith::DivFOp>;
-using ArithMaxFRule = BinaryOpRule<arith::MaxFOp>;
-using ArithMaxSIRule = BinaryOpRule<arith::MaxSIOp>;
-using ArithMaxUIRule = BinaryOpRule<arith::MaxUIOp>;
-using ArithMinFRule = BinaryOpRule<arith::MinFOp>;
-using ArithMinSIRule = BinaryOpRule<arith::MinSIOp>;
-using ArithMinUIRule = BinaryOpRule<arith::MinUIOp>;
-using ArithNegFRule = UnaryOpRule<arith::NegFOp>;
+using ArithmeticAddIRule = BinaryOpRule<arith::AddIOp>;
+using ArithmeticAddFRule = BinaryOpRule<arith::AddFOp>;
+using ArithmeticSubIRule = BinaryOpRule<arith::SubIOp>;
+using ArithmeticSubFRule = BinaryOpRule<arith::SubFOp>;
+using ArithmeticMulIRule = BinaryOpRule<arith::MulIOp>;
+using ArithmeticMulFRule = BinaryOpRule<arith::MulFOp>;
+using ArithmeticDivFRule = BinaryOpRule<arith::DivFOp>;
+using ArithmeticMaxFRule = BinaryOpRule<arith::MaxFOp>;
+using ArithmeticMaxSIRule = BinaryOpRule<arith::MaxSIOp>;
+using ArithmeticMaxUIRule = BinaryOpRule<arith::MaxUIOp>;
+using ArithmeticMinFRule = BinaryOpRule<arith::MinFOp>;
+using ArithmeticMinSIRule = BinaryOpRule<arith::MinSIOp>;
+using ArithmeticMinUIRule = BinaryOpRule<arith::MinUIOp>;
+using ArithmeticNegFRule = UnaryOpRule<arith::NegFOp>;
 
 ValueRange getArithGradients(Operation* op, Value grad);
 Value getArithGradient(Operation* op, Value grad, Value input);

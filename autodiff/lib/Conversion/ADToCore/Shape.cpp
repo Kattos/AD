@@ -8,7 +8,7 @@ LogicalResult verifySameShape(Value a, Value b) {
   auto aType = a.getType();
   auto bType = b.getType();
 
-  if (!isa<ShapedType>(aType) || !isa<ShapedType>(bType)) {
+  if (!aType.isa<ShapedType>() || !bType.isa<ShapedType>()) {
     return failure();
   }
 
@@ -22,8 +22,8 @@ class BroadcastToCore : public OpRewritePattern<ad::BroadcastOp> {
 
   LogicalResult matchAndRewrite(ad::BroadcastOp broadcast,
                                 PatternRewriter& rewriter) const override {
-    auto from = broadcast.getFrom();
-    auto to = broadcast.getTo();
+    auto from = broadcast.from();
+    auto to = broadcast.to();
 
     if (succeeded(verifySameShape(from, to))) {
       rewriter.replaceOp(broadcast, from);
@@ -32,7 +32,7 @@ class BroadcastToCore : public OpRewritePattern<ad::BroadcastOp> {
 
     auto zero = zeros(rewriter, to);
     auto reshape = createOp<tosa::AddOp>(rewriter, to.getType(), from, zero);
-    rewriter.replaceOp(broadcast, reshape.getResult());
+    rewriter.replaceOp(broadcast, reshape.output());
     return success();
   }
 };
@@ -42,17 +42,17 @@ class ReduceToCore : public OpRewritePattern<ad::ReduceOp> {
 
   LogicalResult matchAndRewrite(ad::ReduceOp reduce,
                                 PatternRewriter& rewriter) const override {
-    auto from = reduce.getFrom();
-    auto to = reduce.getTo();
+    auto from = reduce.from();
+    auto to = reduce.to();
 
     if (succeeded(verifySameShape(from, to))) {
       rewriter.replaceOp(reduce, from);
       return success();
     }
 
-    auto elemType = from.getType().getElementType();
-    auto fromShape = from.getType().getShape();
-    auto toShape = to.getType().getShape();
+    auto elemType = from.getType().cast<ShapedType>().getElementType();
+    auto fromShape = from.getType().cast<ShapedType>().getShape();
+    auto toShape = to.getType().cast<ShapedType>().getShape();
 
     auto fromVec = fromShape.vec();
     auto toVec = toShape.vec();
@@ -82,7 +82,7 @@ class ReduceToCore : public OpRewritePattern<ad::ReduceOp> {
     auto reshape =
         createOp<tosa::ReshapeOp>(rewriter, to.getType(), from, attr);
 
-    rewriter.replaceOp(reduce, reshape.getResult());
+    rewriter.replaceOp(reduce, reshape.output());
     return success();
   }
 };

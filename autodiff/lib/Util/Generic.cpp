@@ -1,5 +1,7 @@
 #include "Util/Generic.hpp"
 
+#include <iterator>
+
 #include "Dialect/AD/IR/AD.hpp"
 #include "Util/Arith.hpp"
 #include "Util/Bufferization.hpp"
@@ -34,7 +36,7 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
                  std::back_inserter(reverseMaps),
                  [](AffineMap map) { return map; });
 
-  auto reverseIters = forward.getIteratorTypesArray();
+  auto reverseIters = forward.getIteratorTypes();
 
   auto forwardBody = forward.getBody();
 
@@ -77,9 +79,15 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
     builder.create<linalg::YieldOp>(loc, yields);
   };
 
+  SmallVector<StringRef> iters;
+  llvm::transform(reverseIters, std::back_inserter(iters),
+                  [](decltype(*reverseIters.begin()) i) {
+                    return i.dyn_cast<StringAttr>().getValue();
+                  });
+
   return builder.create<linalg::GenericOp>(loc, reverseTypes, reverseInputs,
-                                           reverseOutputs, reverseMaps,
-                                           reverseIters, reverseBody);
+                                           reverseOutputs, reverseMaps, iters,
+                                           reverseBody);
 }
 
 }  // namespace generic

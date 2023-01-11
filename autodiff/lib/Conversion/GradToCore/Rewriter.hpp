@@ -5,7 +5,7 @@
 #include "Rule/Helper.hpp"
 #include "Rule/Rules.hpp"
 #include "Rule/Utils.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 
 namespace mlir::autodiff {

@@ -13,8 +13,8 @@ class GradientToCore : public OpRewritePattern<grad::GradientOp> {
 
   LogicalResult matchAndRewrite(grad::GradientOp gradient,
                                 PatternRewriter& rewriter) const override {
-    auto target = gradient.getTarget();
-    auto source = gradient.getSource();
+    auto target = gradient.target();
+    auto source = gradient.source();
 
     auto tape = tape::record(source, target, rewriter);
     rewriter.replaceOp(gradient, tape.get(source, rewriter));

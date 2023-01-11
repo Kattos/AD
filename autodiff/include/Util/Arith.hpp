@@ -1,7 +1,7 @@
 #ifndef AD_UTIL_ARITH_HPP
 #define AD_UTIL_ARITH_HPP
 
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir {
 namespace autodiff {

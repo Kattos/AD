@@ -1,6 +1,6 @@
 #include "Dialect/AD/IR/AD.hpp"
 
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/IR/TypeUtilities.h"
 
 #define GET_OP_CLASSES
@@ -12,7 +12,7 @@ namespace impl {
 
 LogicalResult verifyResultsAreScalarTensorLike(Operation* op) {
   for (auto resultType : op->getResultTypes()) {
-    if (!isa<TensorType>(resultType)) {
+    if (!resultType.isa<TensorType>()) {
       return failure();
     }
 
@@ -63,7 +63,7 @@ void ToTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
                        Value input) {
   auto inputType = input.getType();
 
-  if (isa<TensorType>(inputType)) {
+  if (inputType.isa<TensorType>()) {
     return build(odsBuilder, odsState, inputType, input);
   }
 
@@ -82,7 +82,7 @@ void ToTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
 void ScalarTensorOp::build(OpBuilder& odsBuilder, OperationState& odsState,
                            Value input) {
   auto inputType = input.getType();
-  assert(!isa<ShapedType>(inputType) && "Invalid input type");
+  assert(!inputType.isa<ShapedType>() && "Invalid input type");
 
   auto type = RankedTensorType::get({}, getElementTypeOrSelf(inputType));
   return build(odsBuilder, odsState, type, input);

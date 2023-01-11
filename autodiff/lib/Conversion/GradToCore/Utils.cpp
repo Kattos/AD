@@ -1,6 +1,8 @@
 #include "Utils.hpp"
 
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include <iterator>
+
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir {
 namespace autodiff {
@@ -30,7 +32,11 @@ Value pad2DTensor(PatternRewriter& rewriter, Value tensor, ArrayAttr padAttr) {
   auto elemType = type.getElementType();
   auto shape = type.getShape();
 
-  SmallVector<int64_t> paddedShape(shape);
+  // SmallVector<int64_t> paddedShape(shape);
+
+  SmallVector<int64_t> paddedShape;
+  llvm::copy(shape, std::back_inserter(paddedShape));
+
   SmallVector<OpFoldResult, 4> low, high;
   for (auto i : llvm::seq(0, 4)) {
     auto l = pad[2 * i];
@@ -41,13 +47,10 @@ Value pad2DTensor(PatternRewriter& rewriter, Value tensor, ArrayAttr padAttr) {
   }
 
   auto loc = rewriter.getUnknownLoc();
-  auto zeroAttr = rewriter.getZeroAttr(elemType);
-  auto zero =
-      rewriter.create<arith::ConstantOp>(loc, elemType, zeroAttr).getResult();
 
   auto paddedType = RankedTensorType::get(paddedShape, elemType);
   auto paddedTensor =
-      rewriter.create<tensor::PadOp>(loc, paddedType, tensor, low, high, zero);
+      rewriter.create<tensor::PadOp>(loc, paddedType, tensor, low, high);
 
   return paddedTensor;
 }
@@ -68,7 +71,9 @@ Value unpad2DTensor(PatternRewriter& rewriter, Value paddedTensor,
   auto elemType = paddedType.getElementType();
   auto paddedShape = paddedType.getShape();
 
-  SmallVector<int64_t> shape(paddedShape);
+  SmallVector<int64_t> shape;
+  llvm::copy(paddedShape, std::back_inserter(shape));
+
   SmallVector<OpFoldResult, 4> offset, size, stride;
 
   for (auto i : llvm::seq(0, 4)) {

@@ -12,8 +12,8 @@ class AllocRewriter : public OpRewritePattern<bufferization::AllocTensorOp> {
   LogicalResult matchAndRewrite(bufferization::AllocTensorOp alloc,
                                 PatternRewriter& rewriter) const override {
     auto type = alloc.getResult().getType();
-    auto shape = type.getShape();
-    auto elem = type.getElementType();
+    auto shape = type.cast<ShapedType>().getShape();
+    auto elem = type.cast<ShapedType>().getElementType();
 
     rewriter.replaceOpWithNewOp<linalgext::InitTensorOp>(alloc, shape, elem);
     return success();
@@ -25,7 +25,7 @@ class InitRewriter : public OpRewritePattern<linalgext::InitTensorOp> {
 
   LogicalResult matchAndRewrite(linalgext::InitTensorOp init,
                                 PatternRewriter& rewriter) const override {
-    auto tensor = init.getTensor();
+    auto tensor = init.tensor();
     auto alloc = util::bufferization::alloc(tensor, rewriter);
 
     rewriter.replaceOp(init, alloc);
@@ -34,7 +34,7 @@ class InitRewriter : public OpRewritePattern<linalgext::InitTensorOp> {
 };
 
 class AllocTensorToInitTensor
-    : public impl::AllocTensorToInitTensorBase<AllocTensorToInitTensor> {
+    : public AllocTensorToInitTensorBase<AllocTensorToInitTensor> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
     patterns.add<AllocRewriter>(&getContext());
@@ -43,7 +43,7 @@ class AllocTensorToInitTensor
 };
 
 class InitTensorToAllocTensor
-    : public impl::InitTensorToAllocTensorBase<InitTensorToAllocTensor> {
+    : public InitTensorToAllocTensorBase<InitTensorToAllocTensor> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
     patterns.add<InitRewriter>(&getContext());

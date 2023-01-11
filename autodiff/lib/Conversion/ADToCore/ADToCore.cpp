@@ -19,7 +19,7 @@ Value buildScalarTensor(PatternRewriter& rewriter, Value input, Value output) {
 
 }  // namespace ad
 
-class ADToCore : public impl::ADToCoreBase<ADToCore> {
+class ADToCore : public ADToCoreBase<ADToCore> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
     // clang-format off

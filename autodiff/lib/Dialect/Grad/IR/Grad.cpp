@@ -9,11 +9,11 @@ namespace OpTrait {
 namespace impl {
 
 bool isTypeSame(Type a, Type b) {
-  if (isa<IntegerType>(a))
-    return isa<IntegerType>(b);
+  if (a.isa<IntegerType>())
+    return b.isa<IntegerType>();
 
-  else if (isa<FloatType>(a))
-    return isa<FloatType>(b);
+  else if (a.isa<FloatType>())
+    return b.isa<FloatType>();
 
   // shaped type
   auto aShapedType = a.cast<ShapedType>();
@@ -80,10 +80,10 @@ namespace grad {
 
 LogicalResult NablaOp::verifySymbolUses(SymbolTableCollection& symbolTable) {
   if (auto func = symbolTable.lookupNearestSymbolFrom<func::FuncOp>(
-          *this, getFuncAttr())) {
+          *this, funcAttr())) {
     return success();
   }
-  return emitOpError() << getFunc() << " not found";
+  return emitOpError() << func() << " not found";
 }
 
 }  // namespace grad

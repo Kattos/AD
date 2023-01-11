@@ -1,6 +1,6 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "Utils.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Utils/StructuredOpsUtils.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/Support/LogicalResult.h"
@@ -36,22 +36,22 @@ Value dConv2DInput(PatternRewriter& rewriter, Value output) {
   auto loc = rewriter.getUnknownLoc();
   auto ctx = rewriter.getContext();
 
-  auto x = conv.getX();
+  auto x = conv.x();
   auto dx = rewriter.create<ad::ZeroslikeOp>(loc, x).getResult();
-  auto dout = conv.getDout();
-  auto weight = conv.getWeight();
+  auto dout = conv.dout();
+  auto weight = conv.weight();
 
   // get strides
   SmallVector<int64_t> stride;
-  attrToArray(conv.getStrideAttr(), stride);
+  attrToArray(conv.strideAttr(), stride);
 
   // get dilations
   SmallVector<int64_t> dilations;
   // TODO: support dilation
-  attrToArray(conv.getDilationAttr(), dilations);
+  attrToArray(conv.dilationAttr(), dilations);
 
   // build padded tensor
-  auto paddedDx = pad2DTensor(rewriter, dx, conv.getPadAttr());
+  auto paddedDx = pad2DTensor(rewriter, dx, conv.padAttr());
 
   // build window
   auto weightType = weight.getType().cast<ShapedType>();
@@ -59,8 +59,11 @@ Value dConv2DInput(PatternRewriter& rewriter, Value output) {
   auto elemType = weightType.getElementType();
 
   auto windowShape = {weightShape[1], weightShape[2]};
-  auto emptyWindow =
-      rewriter.create<tensor::EmptyOp>(loc, windowShape, elemType);
+  auto bufferType = RankedTensorType::get(windowShape, elemType);
+  // auto emptyWindow =
+  //     rewriter.create<tensor::EmptyOp>(loc, windowShape, elemType);
+  auto emptyWindow = rewriter.create<bufferization::AllocTensorOp>(
+      rewriter.getUnknownLoc(), bufferType, SmallVector<Value, 0>());
   auto window = rewriter.create<ad::ZeroslikeOp>(loc, emptyWindow);
 
   // build affine maps
@@ -119,7 +122,7 @@ Value dConv2DInput(PatternRewriter& rewriter, Value output) {
                                                     inputs, outputs, indexMaps,
                                                     iteratorTypes, calculator);
 
-  return unpad2DTensor(rewriter, generic->getResult(0), conv.getPadAttr());
+  return unpad2DTensor(rewriter, generic->getResult(0), conv.padAttr());
 }
 
 /*
@@ -139,9 +142,9 @@ Value dConv2DBias(PatternRewriter& rewriter, Value output) {
   }
 
   auto loc = rewriter.getUnknownLoc();
-  auto bias = conv.getBias();
+  auto bias = conv.bias();
   auto dbias = rewriter.create<ad::ZeroslikeOp>(loc, bias).getResult();
-  auto dout = conv.getDout();
+  auto dout = conv.dout();
 
   constexpr auto DIM_COUNT = 4;
   auto mapForDout = rewriter.getMultiDimIdentityMap(DIM_COUNT);
@@ -180,25 +183,25 @@ class GradConv2DToCore : public OpRewritePattern<grad::Conv2DOp> {
     auto loc = rewriter.getUnknownLoc();
     auto ctx = rewriter.getContext();
 
-    auto dout = conv.getDout();
-    auto x = conv.getX();
+    auto dout = conv.dout();
+    auto x = conv.x();
     auto dx = rewriter.create<ad::ZeroslikeOp>(loc, x).getResult();
-    auto weight = conv.getWeight();
+    auto weight = conv.weight();
     auto dweight = rewriter.create<ad::ZeroslikeOp>(loc, weight).getResult();
-    auto bias = conv.getBias();
+    auto bias = conv.bias();
     auto dbias = rewriter.create<ad::ZeroslikeOp>(loc, bias).getResult();
 
     // get strides
     SmallVector<int64_t> stride;
-    attrToArray(conv.getStrideAttr(), stride);
+    attrToArray(conv.strideAttr(), stride);
 
     // get dilations
     SmallVector<int64_t> dilations;
-    attrToArray(conv.getDilationAttr(), dilations);
+    attrToArray(conv.dilationAttr(), dilations);
 
     // build padded tensor
-    auto padX = pad2DTensor(rewriter, x, conv.getPadAttr());
-    auto padDx = pad2DTensor(rewriter, dx, conv.getPadAttr());
+    auto padX = pad2DTensor(rewriter, x, conv.padAttr());
+    auto padDx = pad2DTensor(rewriter, dx, conv.padAttr());
 
     // build affine maps
     constexpr auto DIM_COUNT = 6;
@@ -285,8 +288,7 @@ class GradConv2DToCore : public OpRewritePattern<grad::Conv2DOp> {
     auto generic = rewriter.create<linalg::GenericOp>(
         loc, resTypes, ins, outs, idxMaps, iterTypes, calculator);
 
-    auto retX =
-        unpad2DTensor(rewriter, generic->getResult(0), conv.getPadAttr());
+    auto retX = unpad2DTensor(rewriter, generic->getResult(0), conv.padAttr());
     auto retWeight = generic->getResult(1);
     auto retBias = generic->getResult(2);
 

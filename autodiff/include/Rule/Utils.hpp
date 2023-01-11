@@ -2,7 +2,7 @@
 #define AD_UTILS_HPP
 
 #include "Dialect/AD/IR/AD.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir::autodiff {
 template <typename DialectType>
@@ -14,7 +14,7 @@ bool isIn(Operation* op) {
 
 template <typename DialectType>
 bool isIn(Value value) {
-  return isa<OpResult>(value) && isIn<DialectType>(value.getDefiningOp());
+  return value.isa<OpResult>() && isIn<DialectType>(value.getDefiningOp());
 }
 
 // create ops without specifying location

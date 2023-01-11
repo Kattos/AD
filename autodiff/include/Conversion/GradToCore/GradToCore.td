@@ -3,7 +3,7 @@
 
 include "mlir/IR/PatternBase.td"
 include "mlir/Dialect/Tosa/IR/TosaOps.td"
-include "mlir/Dialect/Arith/IR/ArithOps.td"
+include "mlir/Dialect/Arithmetic/IR/ArithmeticOps.td"
 include "Dialect/AD/IR/AD.td"
 include "Dialect/Grad/IR/Grad.td"
 

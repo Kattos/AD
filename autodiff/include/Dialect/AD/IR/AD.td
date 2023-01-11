@@ -25,14 +25,14 @@ class AD_Op<string mnemonic, list<Trait> traits = []> : Op<AD_Dialect, mnemonic,
 // Defines the operations of the dialect
 //===----------------------------------------------------------------------===//
 
-def AD_OneslikeOp : AD_Op<"oneslike", [Pure, SameOperandsAndResultType]> {
+def AD_OneslikeOp : AD_Op<"oneslike", [NoSideEffect, SameOperandsAndResultType]> {
     let summary = "Create a tensor of all ones that has the same shape as the input";
 
     let arguments = (ins AnyType:$input);
     let results = (outs AnyType:$output);
 }
 
-def AD_ZeroslikeOp : AD_Op<"zeroslike", [Pure, SameOperandsAndResultType]> {
+def AD_ZeroslikeOp : AD_Op<"zeroslike", [NoSideEffect, SameOperandsAndResultType]> {
     let summary = "Create a tensor of all zeros that has the same shape as the input";
 
     let arguments = (ins AnyType:$input);

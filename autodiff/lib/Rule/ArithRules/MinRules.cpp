@@ -23,40 +23,40 @@ Value gradMin(OpBuilder& builder, Operation* op, Value cond) {
 }
 
 template <>
-Value ArithMinFRule::getLhsDerivative(OpBuilder& builder, arith::MinFOp minf) {
+Value ArithmeticMinFRule::getLhsDerivative(OpBuilder& builder, arith::MinFOp minf) {
   auto le = cmpF(builder, minf, arith::CmpFPredicate::OLE);
   return gradMin(builder, minf, le);
 }
 
 template <>
-Value ArithMinFRule::getRhsDerivative(OpBuilder& builder, arith::MinFOp minf) {
+Value ArithmeticMinFRule::getRhsDerivative(OpBuilder& builder, arith::MinFOp minf) {
   auto gt = cmpF(builder, minf, arith::CmpFPredicate::OGT);
   return gradMin(builder, minf, gt);
 }
 
 template <>
-Value ArithMinSIRule::getLhsDerivative(OpBuilder& builder,
+Value ArithmeticMinSIRule::getLhsDerivative(OpBuilder& builder,
                                        arith::MinSIOp minsi) {
   auto le = cmpI(builder, minsi, arith::CmpIPredicate::sle);
   return gradMin(builder, minsi, le);
 }
 
 template <>
-Value ArithMinSIRule::getRhsDerivative(OpBuilder& builder,
+Value ArithmeticMinSIRule::getRhsDerivative(OpBuilder& builder,
                                        arith::MinSIOp minsi) {
   auto gt = cmpI(builder, minsi, arith::CmpIPredicate::sgt);
   return gradMin(builder, minsi, gt);
 }
 
 template <>
-Value ArithMinUIRule::getLhsDerivative(OpBuilder& builder,
+Value ArithmeticMinUIRule::getLhsDerivative(OpBuilder& builder,
                                        arith::MinUIOp minui) {
   auto le = cmpI(builder, minui, arith::CmpIPredicate::ule);
   return gradMin(builder, minui, le);
 }
 
 template <>
-Value ArithMinUIRule::getRhsDerivative(OpBuilder& builder,
+Value ArithmeticMinUIRule::getRhsDerivative(OpBuilder& builder,
                                        arith::MinUIOp minui) {
   auto gt = cmpI(builder, minui, arith::CmpIPredicate::ugt);
   return gradMin(builder, minui, gt);

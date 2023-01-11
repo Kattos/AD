@@ -13,7 +13,7 @@ ValueRange getGradients(Operation* op, Value grad) {
   else if (isIn<math::MathDialect>(op))
     return getMathGradients(op, grad);
 
-  else if (isIn<arith::ArithDialect>(op))
+  else if (isIn<arith::ArithmeticDialect>(op))
     return getArithGradients(op, grad);
 
   return {};
@@ -26,7 +26,7 @@ Value getGradient(Operation* op, Value grad, Value input) {
   else if (isIn<math::MathDialect>(op))
     return getMathGradient(op, grad, input);
 
-  else if (isIn<arith::ArithDialect>(op))
+  else if (isIn<arith::ArithmeticDialect>(op))
     return getArithGradient(op, grad, input);
 
   return nullptr;

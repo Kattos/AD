@@ -1,5 +1,5 @@
 #include "Rule/Utils.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir::autodiff {
 

@@ -1,3 +1,5 @@
+#include <iterator>
+
 #include "Dialect/AD/IR/AD.hpp"
 #include "Dialect/Grad/IR/Grad.hpp"
 #include "Dialect/Grad/IR/GradInterface.hpp"
@@ -5,7 +7,7 @@
 #include "Pass/Autodiff/Passes.hpp"
 #include "Util/Generic.hpp"
 #include "Util/Tape.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/IR/BuiltinTypes.h"
@@ -34,7 +36,7 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
         auto funcType = func.getFunctionType();
         auto newFuncType = builder.getFunctionType(funcType.getInputs(),
                                                    returnOp->getOperandTypes());
-        func.setFunctionType(newFuncType);
+        func.setFunctionTypeAttr(TypeAttr::get(newFuncType));
       });
     });
   }
@@ -51,8 +53,9 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
       auto inputs = func.getFunctionType().getInputs();
       auto outputs = func.getFunctionType().getResults();
 
-      auto revInputs = SmallVector<Type>(inputs);
-      std::copy(outputs.begin(), outputs.end(), std::back_inserter(revInputs));
+      SmallVector<Type> revInputs;
+      llvm::copy(inputs, std::back_inserter(revInputs));
+      llvm::copy(outputs, std::back_insert_iterator(revInputs));
 
       auto revName = ("nabla_" + func.getSymName()).str();
       auto revType = builder.getFunctionType(revInputs, inputs);
@@ -64,7 +67,7 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
       auto fn = FlatSymbolRefAttr::get(func);
       auto rev = bodyBuilder.create<grad::NablaOp>(loc, inputs, fn,
                                                    revFunc.getArguments());
-      bodyBuilder.create<func::ReturnOp>(loc, rev.getOutputs());
+      bodyBuilder.create<func::ReturnOp>(loc, rev.outputs());
     });
   }
 
@@ -89,7 +92,8 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
         returnOp->setOperands(reverse.getResults());
         auto type = builder.getFunctionType(func.getArgumentTypes(),
                                             returnOp->getOperandTypes());
-        func.setFunctionType(type);
+        func.setFunctionTypeAttr(TypeAttr::get(type));
+        ;
       }
     });
 
@@ -120,7 +124,7 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
       auto funcType = func.getFunctionType();
       auto newFuncType =
           builder.getFunctionType(funcType.getInputs(), funcType.getInputs());
-      func.setFunctionType(newFuncType);
+      func.setFunctionTypeAttr(TypeAttr::get(newFuncType));
     });
   }
 };

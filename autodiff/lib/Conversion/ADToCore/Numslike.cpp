@@ -1,5 +1,5 @@
 #include "Conversion/ADToCore/ADToCore.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir::autodiff {
 
@@ -24,11 +24,11 @@ Value constantFloatTensor(OpBuilder& builder, Type tensorType, double value) {
 
 bool replaceWithValue(Operation* op, Type type, PatternRewriter& rewriter,
                       float value) {
-  if (isa<TensorType>(type)) {
+  if (type.isa<TensorType>()) {
     rewriter.replaceOp(op, constantFloatTensor(rewriter, type, value));
-  } else if (isa<FloatType>(type)) {
+  } else if (type.isa<FloatType>()) {
     rewriter.replaceOp(op, constantFloat(rewriter, type, value));
-  } else if (isa<IntegerType>(type)) {
+  } else if (type.isa<IntegerType>()) {
     rewriter.replaceOp(op, constantInt(rewriter, type, value));
   } else {
     return false;

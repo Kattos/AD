@@ -1,4 +1,5 @@
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
@@ -30,7 +31,7 @@ Value createLinalgBodyCalculationForElementwiseOp(Operation *op,
 
   // tosa::AbsOp
   if (isa<tosa::AbsOp>(op) && elementTy.isa<FloatType>())
-    return rewriter.create<math::AbsFOp>(loc, resultTypes, args);
+    return rewriter.create<math::AbsOp>(loc, resultTypes, args);
 
   if (isa<tosa::AbsOp>(op) && elementTy.isa<IntegerType>()) {
     auto zero = rewriter.create<arith::ConstantOp>(
@@ -87,8 +88,14 @@ LogicalResult elementwiseMatchAndRewriteHelper(Operation *operation,
 
   for (auto result : results) {
     auto resultTy = result.getType().template cast<ShapedType>();
-    emptyTensors.push_back(rewriter.create<tensor::EmptyOp>(
-        loc, resultTy.getShape(), resultTy.getElementType(), filteredDims));
+    auto bufferType =
+        RankedTensorType::get(resultTy.getShape(), resultTy.getElementType());
+    auto buffer = rewriter.create<bufferization::AllocTensorOp>(
+        loc, bufferType, SmallVector<Value, 0>());
+    // emptyTensors.push_back(rewriter.create<tensor::EmptyOp>(
+    //     loc, resultTy.getShape(), resultTy.getElementType(),
+    //     filteredDims));
+    emptyTensors.push_back(buffer);
     opResultTypes.push_back(result.getType());
   }
 

@@ -2,7 +2,7 @@
 #include "Rule/Utils.hpp"
 
 #include "Dialect/AD/IR/AD.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include "mlir/IR/BuiltinAttributes.h"
@@ -35,11 +35,11 @@ Value sum(OpBuilder& builder, Value lhs, Value rhs) {
   auto lhsType = lhs.getType();
   auto rhsType = rhs.getType();
 
-  if (isa<TensorType>(lhsType) || isa<TensorType>(rhsType)) {
+  if (lhsType.isa<TensorType>() || rhsType.isa<TensorType>()) {
     return createOp<tosa::AddOp>(builder, lhs.getType(), lhs, rhs);
-  } else if (isa<FloatType>(lhsType) || isa<FloatType>(rhsType)) {
+  } else if (lhsType.isa<FloatType>() || rhsType.isa<FloatType>()) {
     return createOp<arith::AddFOp>(builder, lhs, rhs);
-  } else if (isa<IntegerType>(lhsType) || isa<IntegerType>(rhsType)) {
+  } else if (lhsType.isa<IntegerType>() || rhsType.isa<IntegerType>()) {
     return createOp<arith::AddIOp>(builder, lhs, rhs);
   }
 
@@ -55,12 +55,12 @@ Value product(OpBuilder& builder, Value lhs, Value rhs) {
   auto lhsType = lhs.getType();
   auto rhsType = rhs.getType();
 
-  if (isa<TensorType>(lhsType) || isa<TensorType>(rhsType)) {
+  if (lhsType.isa<TensorType>() || rhsType.isa<TensorType>()) {
     auto shift = builder.getI32IntegerAttr(0);
     return createOp<tosa::MulOp>(builder, lhs.getType(), lhs, rhs, shift);
-  } else if (isa<FloatType>(lhsType) || isa<FloatType>(rhsType)) {
+  } else if (lhsType.isa<FloatType>() || rhsType.isa<FloatType>()) {
     return createOp<arith::MulFOp>(builder, lhs, rhs);
-  } else if (isa<IntegerType>(lhsType) || isa<IntegerType>(rhsType)) {
+  } else if (lhsType.isa<IntegerType>() || rhsType.isa<IntegerType>()) {
     return createOp<arith::MulIOp>(builder, lhs, rhs);
   }
 
@@ -69,7 +69,7 @@ Value product(OpBuilder& builder, Value lhs, Value rhs) {
 
 // get operation by value or get value by operation
 Operation* getRelatedOperation(Value value) {
-  return isa<OpResult>(value) ? value.getDefiningOp() : nullptr;
+  return value.isa<OpResult>() ? value.getDefiningOp() : nullptr;
 }
 
 Value getRelatedValue(Operation* op) {
@@ -87,7 +87,7 @@ Value reduce(OpBuilder& builder, Value from, Value to) {
   auto fromType = from.getType();
   auto toType = to.getType();
 
-  assert(isa<ShapedType>(fromType) && isa<ShapedType>(toType));
+  assert(fromType.isa<ShapedType>() && toType.isa<ShapedType>());
 
   auto fromShape = fromType.cast<ShapedType>().getShape();
   auto toShape = toType.cast<ShapedType>().getShape();
@@ -131,7 +131,7 @@ Value broadcast(OpBuilder& builder, Value from, Value to) {
   auto fromType = from.getType();
   auto toType = to.getType();
 
-  assert(isa<ShapedType>(fromType) && isa<ShapedType>(toType));
+  assert(fromType.isa<ShapedType>() && toType.isa<ShapedType>());
 
   auto fromShape = fromType.cast<ShapedType>().getShape();
   auto toShape = toType.cast<ShapedType>().getShape();

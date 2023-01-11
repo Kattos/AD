@@ -1,3 +1,5 @@
+#include <iterator>
+
 #include "Dialect/AD/IR/AD.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
@@ -36,11 +38,16 @@ class GenericWrapper {
       reverseMaps.emplace_back(forwardMaps[i]);
     }
 
-    auto reverseIters = forward.getIteratorTypesArray();
+    auto reverseIters = forward.getIteratorTypes();
+    SmallVector<StringRef> iters;
+    llvm::transform(reverseIters, std::back_inserter(iters),
+                    [](decltype(*reverseIters.begin()) i) {
+                      return i.dyn_cast<StringAttr>().getValue();
+                    });
 
     return builder.create<linalg::GenericOp>(loc, reverseTypes, reverseInputs,
-                                             reverseOutputs, reverseMaps,
-                                             reverseIters, reverseBody());
+                                             reverseOutputs, reverseMaps, iters,
+                                             reverseBody());
   }
 
   function_ref<void(OpBuilder&, Location, ValueRange)> reverseBody() {

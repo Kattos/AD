@@ -18,7 +18,7 @@ Value constant(double value, OpBuilder& builder, Type type) {
 Value add(Value lhs, Value rhs, OpBuilder& builder) {
   auto lhsType = lhs.getType();
   auto rhsType = rhs.getType();
-  if (isa<IntegerType>(lhsType) && isa<IntegerType>(rhsType)) {
+  if (lhsType.isa<IntegerType>() && rhsType.isa<IntegerType>()) {
     return builder.create<AddIOp>(builder.getUnknownLoc(), lhs, rhs);
   }
   return builder.create<AddFOp>(builder.getUnknownLoc(), lhs, rhs);
@@ -27,7 +27,7 @@ Value add(Value lhs, Value rhs, OpBuilder& builder) {
 Value mul(Value lhs, Value rhs, OpBuilder& builder) {
   auto lhsType = lhs.getType();
   auto rhsType = rhs.getType();
-  if (isa<IntegerType>(lhsType) && isa<IntegerType>(rhsType)) {
+  if (lhsType.isa<IntegerType>() && rhsType.isa<IntegerType>()) {
     return builder.create<MulIOp>(builder.getUnknownLoc(), lhs, rhs);
   }
   return builder.create<MulFOp>(builder.getUnknownLoc(), lhs, rhs);

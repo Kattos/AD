@@ -1,7 +1,7 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "Rule/Utils.hpp"
 #include "Utils.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir {
 namespace autodiff {
@@ -17,20 +17,20 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value output) {
     return nullptr;
   }
 
-  auto x = avg.getX();
-  auto dout = avg.getDout();
+  auto x = avg.x();
+  auto dout = avg.dout();
   auto dx = zeros(rewriter, x);
 
   SmallVector<int64_t> kernel;
-  attrToArray(avg.getKernelAttr(), kernel);
+  attrToArray(avg.kernelAttr(), kernel);
 
   SmallVector<int64_t> stride;
-  attrToArray(avg.getStrideAttr(), stride);
+  attrToArray(avg.strideAttr(), stride);
 
   auto xType = x.getType().cast<RankedTensorType>();
   auto xElemType = xType.getElementType();
 
-  auto paddedDx = pad2DTensor(rewriter, dx, avg.getPadAttr());
+  auto paddedDx = pad2DTensor(rewriter, dx, avg.padAttr());
 
   /*
 
@@ -66,7 +66,10 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value output) {
   exprs.pop_back_n(2);
   auto mapForDx = AffineMap::get(6, 0, exprs, rewriter.getContext());
 
-  auto emptyWindow = createOp<tensor::EmptyOp>(rewriter, kernel, xElemType);
+  auto bufferType = RankedTensorType::get(kernel, xElemType);
+  auto emptyWindow = rewriter.create<bufferization::AllocTensorOp>(
+      rewriter.getUnknownLoc(), bufferType, SmallVector<Value, 0>());
+  // auto emptyWindow = createOp<tensor::EmptyOp>(rewriter, kernel, xElemType);
   auto window = zeros(rewriter, emptyWindow);
 
   auto resultTensorTypes = paddedDx.getType();
@@ -102,7 +105,7 @@ Value dAvgPool2d(PatternRewriter& rewriter, Value output) {
                                   indexMaps, iteratorTypes, calculator);
 
   // extract dx from dpaddedx
-  return unpad2DTensor(rewriter, generic->getResult(0), avg.getPadAttr());
+  return unpad2DTensor(rewriter, generic->getResult(0), avg.padAttr());
 }
 
 }  // namespace core

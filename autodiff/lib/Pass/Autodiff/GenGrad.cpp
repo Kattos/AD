@@ -55,7 +55,7 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       }
 
       auto xOp = getRelatedOperation(x);
-      backprop(builder, xOp, unary.getDx());
+      backprop(builder, xOp, unary.dx());
     } else if (2 == inputs) {
       auto lhs = op->getOperand(0);
       auto rhs = op->getOperand(1);
@@ -69,8 +69,8 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       auto lhsOp = getRelatedOperation(lhs);
       auto rhsOp = getRelatedOperation(rhs);
 
-      backprop(builder, lhsOp, binary.getDlhs());
-      backprop(builder, rhsOp, binary.getDrhs());
+      backprop(builder, lhsOp, binary.dlhs());
+      backprop(builder, rhsOp, binary.drhs());
     } else {
       SmallVector<Value> operands(op->getOperands());
       operands.emplace_back(dout);
@@ -136,7 +136,7 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       returnValues.resize(forwardInputs.size());
 
       func.getBody().walk([&](ad::PlaceholderOp op) {
-        auto argIndex = op.getInput().cast<BlockArgument>().getArgNumber();
+        auto argIndex = op.input().cast<BlockArgument>().getArgNumber();
         auto cacheIndex = op->getAttrOfType<IntegerAttr>(REQGRAD).getInt();
         returnValues[argIndex] = cache[cacheIndex];
       });
@@ -146,12 +146,12 @@ class GenGradPass : public GenGradPassBase<GenGradPass> {
       // update function signature
       auto symName = func.getSymName();
       auto newName = ("diff_" + symName).str();
-      func.setSymName(newName);
+      func.setSymNameAttr(builder.getStringAttr(newName));
 
       auto argsType = func.getArgumentTypes();
       auto newType =
           builder.getFunctionType(argsType, returnOp->getOperandTypes());
-      func.setFunctionType(newType);
+      func.setFunctionTypeAttr(TypeAttr::get(newType));
 
       // remove unused attribute
       func.getBody().walk([&](Operation* op) { op->removeAttr(REQGRAD); });

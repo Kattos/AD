@@ -1,5 +1,6 @@
 #include "Rule/Helper.hpp"
 
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
@@ -65,8 +66,13 @@ linalg::GenericOp buildGeneric(Operation *operation, ValueRange newOperands,
 
   for (auto result : results) {
     auto resultTy = result.getType().template cast<ShapedType>();
-    emptyTensors.push_back(rewriter.create<tensor::EmptyOp>(
-        loc, resultTy.getShape(), resultTy.getElementType(), filteredDims));
+    auto bufferType =
+        RankedTensorType::get(resultTy.getShape(), resultTy.getElementType());
+    auto buffer = rewriter.create<bufferization::AllocTensorOp>(
+        loc, bufferType, SmallVector<Value, 0>());
+    // emptyTensors.push_back(rewriter.create<tensor::EmptyOp>(
+    //     loc, resultTy.getShape(), resultTy.getElementType(), filteredDims));
+    emptyTensors.push_back(buffer);
     opResultTypes.push_back(result.getType());
   }
 

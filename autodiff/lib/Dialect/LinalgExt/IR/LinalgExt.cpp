@@ -27,7 +27,7 @@ void InitTensorOp::build(OpBuilder &odsBuilder, OperationState &odsState,
 
 LogicalResult InitTensorOp::verify() {
   auto tensorShape = getType().getShape();
-  auto attrShape = getShape().getValue();
+  auto attrShape = shape().getValue();
 
   if (tensorShape.size() != attrShape.size()) {
     emitError() << "Shape of tensor conflicts with the given attribute\n";

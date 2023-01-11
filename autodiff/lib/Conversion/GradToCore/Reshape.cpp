@@ -13,8 +13,8 @@ Value dReshape(PatternRewriter& rewriter, Value output) {
 
   auto loc = rewriter.getUnknownLoc();
 
-  auto x = reshape.getX();
-  auto dout = reshape.getDout();
+  auto x = reshape.x();
+  auto dout = reshape.dout();
   auto shape = x.getType().cast<ShapedType>().getShape();
   auto shapeAttr = rewriter.getI64ArrayAttr(shape);
 

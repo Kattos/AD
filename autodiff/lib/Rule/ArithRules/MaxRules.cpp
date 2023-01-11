@@ -23,40 +23,40 @@ Value gradMax(OpBuilder& builder, Operation* op, Value cond) {
 }
 
 template <>
-Value ArithMaxFRule::getLhsDerivative(OpBuilder& builder, arith::MaxFOp maxf) {
+Value ArithmeticMaxFRule::getLhsDerivative(OpBuilder& builder, arith::MaxFOp maxf) {
   auto ge = cmpF(builder, maxf, arith::CmpFPredicate::OGE);
   return gradMax(builder, maxf, ge);
 }
 
 template <>
-Value ArithMaxFRule::getRhsDerivative(OpBuilder& builder, arith::MaxFOp maxf) {
+Value ArithmeticMaxFRule::getRhsDerivative(OpBuilder& builder, arith::MaxFOp maxf) {
   auto lt = cmpF(builder, maxf, arith::CmpFPredicate::OLT);
   return gradMax(builder, maxf, lt);
 }
 
 template <>
-Value ArithMaxSIRule::getLhsDerivative(OpBuilder& builder,
+Value ArithmeticMaxSIRule::getLhsDerivative(OpBuilder& builder,
                                        arith::MaxSIOp maxsi) {
   auto ge = cmpI(builder, maxsi, arith::CmpIPredicate::sge);
   return gradMax(builder, maxsi, ge);
 }
 
 template <>
-Value ArithMaxSIRule::getRhsDerivative(OpBuilder& builder,
+Value ArithmeticMaxSIRule::getRhsDerivative(OpBuilder& builder,
                                        arith::MaxSIOp maxsi) {
   auto lt = cmpI(builder, maxsi, arith::CmpIPredicate::slt);
   return gradMax(builder, maxsi, lt);
 }
 
 template <>
-Value ArithMaxUIRule::getLhsDerivative(OpBuilder& builder,
+Value ArithmeticMaxUIRule::getLhsDerivative(OpBuilder& builder,
                                        arith::MaxUIOp maxui) {
   auto ge = cmpI(builder, maxui, arith::CmpIPredicate::uge);
   return gradMax(builder, maxui, ge);
 }
 
 template <>
-Value ArithMaxUIRule::getRhsDerivative(OpBuilder& builder,
+Value ArithmeticMaxUIRule::getRhsDerivative(OpBuilder& builder,
                                        arith::MaxUIOp maxui) {
   auto lt = cmpI(builder, maxui, arith::CmpIPredicate::ult);
   return gradMax(builder, maxui, lt);

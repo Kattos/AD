@@ -3,8 +3,8 @@
 
 namespace mlir::autodiff {
 
-using MathAbsFRule = UnaryOpRule<math::AbsFOp>;
-using MathAbsIRule = UnaryOpRule<math::AbsIOp>;
+using MathAbsRule = UnaryOpRule<math::AbsOp>;
+using MathAbsRule = UnaryOpRule<math::AbsOp>;
 using MathLogRule = UnaryOpRule<math::LogOp>;
 using MathLog10Rule = UnaryOpRule<math::Log10Op>;
 using MathLog2Rule = UnaryOpRule<math::Log2Op>;

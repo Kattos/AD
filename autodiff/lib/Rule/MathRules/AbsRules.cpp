@@ -1,5 +1,5 @@
 #include "MathRules.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 
 namespace mlir::autodiff {
@@ -46,7 +46,7 @@ Value gradAbs(OpBuilder& builder, Operation* op, CmpFn eq, CmpFn gt, NegFn ne) {
 }
 
 template <>
-Value MathAbsFRule::getInputDerivative(OpBuilder& builder, math::AbsFOp absf) {
+Value MathAbsRule::getInputDerivative(OpBuilder& builder, math::AbsOp absf) {
   CmpFn eq = [](OpBuilder& builder, Value lhs, Value rhs) -> Value {
     return createOp<arith::CmpFOp>(builder, arith::CmpFPredicate::OEQ, lhs,
                                    rhs);
@@ -62,27 +62,6 @@ Value MathAbsFRule::getInputDerivative(OpBuilder& builder, math::AbsFOp absf) {
   };
 
   return gradAbs(builder, absf, eq, gt, ne);
-}
-
-template <>
-Value MathAbsIRule::getInputDerivative(OpBuilder& builder, math::AbsIOp absi) {
-  CmpFn eq = [](OpBuilder& builder, Value lhs, Value rhs) -> Value {
-    return createOp<arith::CmpIOp>(builder, arith::CmpIPredicate::eq, lhs, rhs);
-  };
-
-  CmpFn gt = [](OpBuilder& builder, Value lhs, Value rhs) -> Value {
-    return createOp<arith::CmpIOp>(builder, arith::CmpIPredicate::sgt, lhs,
-                                   rhs);
-  };
-
-  NegFn ne = [](OpBuilder& builder, Value input) -> Value {
-    auto type = input.getType().cast<IntegerType>();
-    auto width = type.getWidth();
-    auto minusOne = createOp<arith::ConstantIntOp>(builder, -1, width);
-    return product(builder, input, minusOne);
-  };
-
-  return gradAbs(builder, absi, eq, gt, ne);
 }
 
 }  // namespace mlir::autodiff

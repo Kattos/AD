@@ -17,7 +17,7 @@ class Grad_Op<string mnemonic, list<Trait> traits = []> : Op<Grad_Dialect, mnemo
 
 def SameInputAndDerivativeType : NativeOpTrait<"SameInputAndDerivativeType">;
 
-class Grad_UnaryOp<string mnemonic, list<Trait> traits=[Pure]> : Grad_Op<mnemonic, traits> {
+class Grad_UnaryOp<string mnemonic, list<Trait> traits=[NoSideEffect]> : Grad_Op<mnemonic, traits> {
     let arguments = (ins AnyType: $x, AnyType: $dout);
     let results = (outs AnyType: $dx);
 }
@@ -83,9 +83,9 @@ def Grad_AvgPool2dOp : Grad_UnaryOp<"avg_pool2d"> {
     let arguments = (ins
         Grad_Tensor4D: $x,
         Grad_Tensor4D: $dout,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $kernel,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $stride,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>: $pad
+        Confined<I64ArrayAttr, [ArrayCount<2>]>: $kernel,
+        Confined<I64ArrayAttr, [ArrayCount<2>]>: $stride,
+        Confined<I64ArrayAttr, [ArrayCount<4>]>: $pad
     );
 
     let results = (outs 4DTensorOf<[Grad_AnyNumber]>: $dx);
@@ -98,9 +98,9 @@ def Grad_Conv2DOp : Grad_Op<"conv2d"> {
         Grad_Tensor4D: $weight,
         Grad_Tensor1D: $bias,
         Grad_Tensor4D: $dout,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $dilation,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<2>]>: $stride,
-        ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>: $pad
+        Confined<I64ArrayAttr, [ArrayCount<2>]>: $dilation,
+        Confined<I64ArrayAttr, [ArrayCount<2>]>: $stride,
+        Confined<I64ArrayAttr, [ArrayCount<4>]>: $pad
     );
 
     let results = (outs 

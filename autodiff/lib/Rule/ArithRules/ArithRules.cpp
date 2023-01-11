@@ -7,52 +7,52 @@
 #include "MulRules.cpp"
 #include "NegRules.cpp"
 #include "SubRules.cpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir::autodiff {
 
 ValueRange getArithGradients(Operation* op, Value grad) {
   if (isa<arith::AddIOp>(op))
-    return getGradients<ArithAddIRule>(op, grad);
+    return getGradients<ArithmeticAddIRule>(op, grad);
 
   else if (isa<arith::AddFOp>(op))
-    return getGradients<ArithAddFRule>(op, grad);
+    return getGradients<ArithmeticAddFRule>(op, grad);
 
   else if (isa<arith::SubIOp>(op))
-    return getGradients<ArithSubIRule>(op, grad);
+    return getGradients<ArithmeticSubIRule>(op, grad);
 
   else if (isa<arith::SubFOp>(op))
-    return getGradients<ArithSubFRule>(op, grad);
+    return getGradients<ArithmeticSubFRule>(op, grad);
 
   else if (isa<arith::MulIOp>(op))
-    return getGradients<ArithMulIRule>(op, grad);
+    return getGradients<ArithmeticMulIRule>(op, grad);
 
   else if (isa<arith::MulFOp>(op))
-    return getGradients<ArithMulFRule>(op, grad);
+    return getGradients<ArithmeticMulFRule>(op, grad);
 
   else if (isa<arith::DivFOp>(op))
-    return getGradients<ArithDivFRule>(op, grad);
+    return getGradients<ArithmeticDivFRule>(op, grad);
 
   else if (isa<arith::MaxFOp>(op))
-    return getGradients<ArithMaxFRule>(op, grad);
+    return getGradients<ArithmeticMaxFRule>(op, grad);
 
   else if (isa<arith::MaxSIOp>(op))
-    return getGradients<ArithMaxSIRule>(op, grad);
+    return getGradients<ArithmeticMaxSIRule>(op, grad);
 
   else if (isa<arith::MaxUIOp>(op))
-    return getGradients<ArithMaxUIRule>(op, grad);
+    return getGradients<ArithmeticMaxUIRule>(op, grad);
 
   else if (isa<arith::MinFOp>(op))
-    return getGradients<ArithMinFRule>(op, grad);
+    return getGradients<ArithmeticMinFRule>(op, grad);
 
   else if (isa<arith::MinSIOp>(op))
-    return getGradients<ArithMinSIRule>(op, grad);
+    return getGradients<ArithmeticMinSIRule>(op, grad);
 
   else if (isa<arith::MinUIOp>(op))
-    return getGradients<ArithMinUIRule>(op, grad);
+    return getGradients<ArithmeticMinUIRule>(op, grad);
 
   else if (isa<arith::NegFOp>(op))
-    return getGradients<ArithNegFRule>(op, grad);
+    return getGradients<ArithmeticNegFRule>(op, grad);
 
   else
     assert(false && "Unsupported `arith` operation detected");
@@ -60,46 +60,46 @@ ValueRange getArithGradients(Operation* op, Value grad) {
 
 Value getArithGradient(Operation* op, Value grad, Value input) {
   if (isa<arith::AddIOp>(op))
-    return getGradient<ArithAddIRule>(op, grad, input);
+    return getGradient<ArithmeticAddIRule>(op, grad, input);
 
   else if (isa<arith::AddFOp>(op))
-    return getGradient<ArithAddFRule>(op, grad, input);
+    return getGradient<ArithmeticAddFRule>(op, grad, input);
 
   else if (isa<arith::SubIOp>(op))
-    return getGradient<ArithSubIRule>(op, grad, input);
+    return getGradient<ArithmeticSubIRule>(op, grad, input);
 
   else if (isa<arith::SubFOp>(op))
-    return getGradient<ArithSubFRule>(op, grad, input);
+    return getGradient<ArithmeticSubFRule>(op, grad, input);
 
   else if (isa<arith::MulIOp>(op))
-    return getGradient<ArithMulIRule>(op, grad, input);
+    return getGradient<ArithmeticMulIRule>(op, grad, input);
 
   else if (isa<arith::MulFOp>(op))
-    return getGradient<ArithMulFRule>(op, grad, input);
+    return getGradient<ArithmeticMulFRule>(op, grad, input);
 
   else if (isa<arith::DivFOp>(op))
-    return getGradient<ArithDivFRule>(op, grad, input);
+    return getGradient<ArithmeticDivFRule>(op, grad, input);
 
   else if (isa<arith::MaxFOp>(op))
-    return getGradient<ArithMaxFRule>(op, grad, input);
+    return getGradient<ArithmeticMaxFRule>(op, grad, input);
 
   else if (isa<arith::MaxSIOp>(op))
-    return getGradient<ArithMaxSIRule>(op, grad, input);
+    return getGradient<ArithmeticMaxSIRule>(op, grad, input);
 
   else if (isa<arith::MaxUIOp>(op))
-    return getGradient<ArithMaxUIRule>(op, grad, input);
+    return getGradient<ArithmeticMaxUIRule>(op, grad, input);
 
   else if (isa<arith::MinFOp>(op))
-    return getGradient<ArithMinFRule>(op, grad, input);
+    return getGradient<ArithmeticMinFRule>(op, grad, input);
 
   else if (isa<arith::MinSIOp>(op))
-    return getGradient<ArithMinSIRule>(op, grad, input);
+    return getGradient<ArithmeticMinSIRule>(op, grad, input);
 
   else if (isa<arith::MinUIOp>(op))
-    return getGradient<ArithMinUIRule>(op, grad, input);
+    return getGradient<ArithmeticMinUIRule>(op, grad, input);
 
   else if (isa<arith::NegFOp>(op))
-    return getGradient<ArithNegFRule>(op, grad, input);
+    return getGradient<ArithmeticNegFRule>(op, grad, input);
 
   else
     assert(false && "Unsupported `arith` operation detected");

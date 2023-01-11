@@ -9,11 +9,11 @@
 namespace mlir::autodiff {
 
 ValueRange getMathGradients(Operation* op, Value grad) {
-  if (isa<math::AbsFOp>(op))
-    return getGradients<MathAbsFRule>(op, grad);
+  if (isa<math::AbsOp>(op))
+    return getGradients<MathAbsRule>(op, grad);
 
-  else if (isa<math::AbsIOp>(op))
-    return getGradients<MathAbsIRule>(op, grad);
+  else if (isa<math::AbsOp>(op))
+    return getGradients<MathAbsRule>(op, grad);
 
   else if (isa<math::LogOp>(op))
     return getGradients<MathLogRule>(op, grad);
@@ -41,11 +41,11 @@ ValueRange getMathGradients(Operation* op, Value grad) {
 }
 
 Value getMathGradient(Operation* op, Value grad, Value input) {
-  if (isa<math::AbsFOp>(op))
-    return getGradient<MathAbsFRule>(op, grad, input);
+  if (isa<math::AbsOp>(op))
+    return getGradient<MathAbsRule>(op, grad, input);
 
-  else if (isa<math::AbsIOp>(op))
-    return getGradient<MathAbsIRule>(op, grad, input);
+  else if (isa<math::AbsOp>(op))
+    return getGradient<MathAbsRule>(op, grad, input);
 
   else if (isa<math::LogOp>(op))
     return getGradient<MathLogRule>(op, grad, input);

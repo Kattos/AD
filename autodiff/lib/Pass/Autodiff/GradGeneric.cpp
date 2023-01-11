@@ -1,3 +1,5 @@
+#include <iterator>
+
 #include "Dialect/AD/IR/AD.hpp"
 #include "Dialect/Grad/IR/Grad.hpp"
 #include "Dual.hpp"
@@ -90,11 +92,16 @@ class ReverseGeneric {
     }
 
     Builder reverseIters(GenericOp op) {
-      auto opIters = op.getIteratorTypesArray();
+      auto opIters = op.getIteratorTypes();
 
-      clear(iters, opIters.size());
-      fill<StringRef, StringRef>(opIters, iters,
-                                 [](StringRef iter) { return iter; });
+      // clear(iters, opIters.size());
+      // fill<StringRef, StringRef>(opIters, iters,
+      //                            [](StringRef iter) { return iter; });
+
+      llvm::transform(opIters, std::back_inserter(iters),
+                      [](decltype(*opIters.begin()) i) {
+                        return i.dyn_cast<StringAttr>().getValue();
+                      });
 
       return *this;
     }

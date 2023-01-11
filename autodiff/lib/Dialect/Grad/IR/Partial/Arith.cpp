@@ -1,4 +1,4 @@
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 #include "Dialect/Grad/IR/GradInterface.hpp"
 #include "Util/Arith.hpp"
@@ -115,8 +115,8 @@ class DivFPartial
   }
 };
 
-void registerArithPartial(DialectRegistry& registry) {
-  registry.addExtension(+[](MLIRContext* context, arith::ArithDialect*) {
+void registerArithmeticPartial(DialectRegistry& registry) {
+  registry.addExtension(+[](MLIRContext* context, arith::ArithmeticDialect*) {
     arith::AddFOp::attachInterface<AddFPartial>(*context);
     arith::MulFOp::attachInterface<MulFPartial>(*context);
     arith::SubFOp::attachInterface<SubFPartial>(*context);

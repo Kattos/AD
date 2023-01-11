@@ -3,7 +3,7 @@
 namespace mlir::autodiff {
 
 template <>
-Value ArithNegFRule::getInputDerivative(OpBuilder& builder,
+Value ArithmeticNegFRule::getInputDerivative(OpBuilder& builder,
                                         arith::NegFOp negf) {
   return createOp<arith::NegFOp>(builder, ones(builder, negf));
 }

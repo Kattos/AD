@@ -51,7 +51,7 @@ void registerAllDialects(DialectRegistry& registry) {
 }
 
 void registerExtensions(DialectRegistry& registry) {
-  registerArithPartial(registry);
+  registerArithmeticPartial(registry);
   registerMathPartial(registry);
 }
 

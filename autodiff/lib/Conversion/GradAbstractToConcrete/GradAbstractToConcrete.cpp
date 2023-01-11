@@ -28,7 +28,7 @@ Value toClamp(PatternRewriter& rewriter, Value unary) {
 }  // namespace grad
 
 class GradAbstractToConcrete
-    : public impl::GradAbstractToConcreteBase<GradAbstractToConcrete> {
+    : public GradAbstractToConcreteBase<GradAbstractToConcrete> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
     grad::concrete::populateWithGenerated(patterns);

@@ -13,7 +13,7 @@ namespace autodiff {
 
 using namespace grad::core;
 
-class GradToCore : public impl::GradToCoreBase<GradToCore> {
+class GradToCore : public GradToCoreBase<GradToCore> {
   void runOnOperation() override {
     RewritePatternSet patterns(&getContext());
     patterns.add<GradMatMulToCore, GradConv2DToCore, GradientToCore>(

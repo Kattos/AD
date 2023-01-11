@@ -1,5 +1,5 @@
 #include "Conversion/GradToCore/GradToCore.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir {
 namespace autodiff {
@@ -43,11 +43,11 @@ class GradMatMulToCore : public OpRewritePattern<grad::MatMulOp> {
     auto mapForL = getMap({0, 1, 2});
     auto mapForR = getMap({0, 2, 3});
 
-    auto lhs = matmul.getLhs();
-    auto rhs = matmul.getRhs();
+    auto lhs = matmul.lhs();
+    auto rhs = matmul.rhs();
 
     auto operandSegmentSizes = rewriter.getNamedAttr(
-        "operand_segment_sizes", rewriter.getDenseI32ArrayAttr({0, 0}));
+        "operand_segment_sizes", rewriter.getI32ArrayAttr({0, 0}));
 
     SmallVector<Value, 0> dynamicSizes;
     auto dlhs = rewriter.create<bufferization::AllocTensorOp>(

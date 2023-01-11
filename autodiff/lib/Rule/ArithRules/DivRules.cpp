@@ -1,17 +1,17 @@
 #include "ArithRules.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/IR/Builders.h"
 
 namespace mlir::autodiff {
 
 template <>
-Value ArithDivFRule::getLhsDerivative(OpBuilder& builder, arith::DivFOp divf) {
+Value ArithmeticDivFRule::getLhsDerivative(OpBuilder& builder, arith::DivFOp divf) {
   auto one = ones(builder, divf);
   return createOp<arith::DivFOp>(builder, one, divf.getRhs());
 }
 
 template <>
-Value ArithDivFRule::getRhsDerivative(OpBuilder& builder, arith::DivFOp divf) {
+Value ArithmeticDivFRule::getRhsDerivative(OpBuilder& builder, arith::DivFOp divf) {
   auto rhs = divf.getRhs();
 
   auto one = ones(builder, divf);

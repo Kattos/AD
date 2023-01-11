@@ -1,7 +1,7 @@
 #include "mlir/Dialect/Math/IR/Math.h"
 
 #include "Dialect/Grad/IR/GradInterface.hpp"
-#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 
 namespace mlir {
 namespace autodiff {
