@@ -4,6 +4,7 @@ add_llvm_library(ADConversion
     GradToCore/Utils.cpp
     GradAbstractToConcrete/GradAbstractToConcrete.cpp
     LinalgExtConversion/LinalgExtConversion.cpp
+    NablaLowering/NablaLowering.cpp
 
     DEPENDS
     ADConversionGen

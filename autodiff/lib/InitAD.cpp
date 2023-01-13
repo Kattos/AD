@@ -5,6 +5,7 @@
 #include "Dialect/Grad/IR/GradDialect.hpp"
 #include "Dialect/Grad/IR/GradInterface.hpp"
 #include "Dialect/LinalgExt/IR/LinalgExt.hpp"
+#include "Dialect/Nabla/IR/Nabla.hpp"
 #include "Pass/Autodiff/Passes.hpp"
 #include "Pass/Simplify/Passes.hpp"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
@@ -48,6 +49,7 @@ void registerAllDialects(DialectRegistry& registry) {
   registry.insert<ad::ADDialect>();
   registry.insert<grad::GradDialect>();
   registry.insert<linalgext::LinalgExtDialect>();
+  registry.insert<nabla::NablaDialect>();
 }
 
 void registerExtensions(DialectRegistry& registry) {

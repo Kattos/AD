@@ -68,38 +68,6 @@ class ExperimentalPass : public ExperimentalPassBase<ExperimentalPass> {
     });
   }
 
-  void nablaGeneric() {
-    auto module = getOperation();
-    OpBuilder builder(module);
-    auto loc = builder.getUnknownLoc();
-
-    module->walk([&](func::FuncOp func) {
-      auto returnOp = func.rbegin()->rbegin();
-      builder.setInsertionPoint(&*returnOp);
-
-      linalg::GenericOp reverse = nullptr;
-
-      func->walk([&](linalg::GenericOp generic) {
-        auto wrapper = GenericWrapper(generic);
-        auto one = builder.create<ad::OneslikeOp>(loc, generic.getResults()[0]);
-        reverse = wrapper.reverse(builder, one);
-      });
-
-      if (reverse) {
-        returnOp->setOperands(reverse.getResults());
-        auto type = builder.getFunctionType(func.getArgumentTypes(),
-                                            returnOp->getOperandTypes());
-        func.setFunctionType(type);
-      }
-    });
-
-    module->walk([&](Operation* op) {
-      if (auto intf = dyn_cast<PartialInterface>(op)) {
-        auto derivatives = intf.partial(builder);
-      }
-    });
-  }
-
   void testTape() {
     auto module = getOperation();
     OpBuilder builder(module);

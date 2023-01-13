@@ -22,14 +22,8 @@ Value Path::evaluate(OpBuilder& builder) {
     }
 
     auto [in, op] = *curr;
-
-    for (auto i = 0u; i < op->getNumOperands(); i++) {
-      if (in == op->getOperand(i)) {
-        auto partial = dyn_cast<PartialInterface>(op).partialFor(builder, i);
-        gradient = arith::mul(gradient, partial, builder);
-        break;
-      }
-    }
+    auto partial = dyn_cast<PartialInterface>(op).partial(in, builder);
+    gradient = arith::mul(gradient, partial, builder);
 
     return recursive(++curr, end, gradient, builder);
   };

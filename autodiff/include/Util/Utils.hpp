@@ -4,6 +4,7 @@
 #include "Arith.hpp"
 #include "Bufferization.hpp"
 #include "Generic.hpp"
+#include "Others.hpp"
 #include "Tape.hpp"
 
 #endif  // AD_UTIL_UTILS_HPP

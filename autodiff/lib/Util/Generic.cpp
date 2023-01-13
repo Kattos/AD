@@ -1,6 +1,7 @@
 #include "Util/Generic.hpp"
 
 #include "Dialect/AD/IR/AD.hpp"
+#include "Dialect/Nabla/IR/Nabla.hpp"
 #include "Util/Arith.hpp"
 #include "Util/Bufferization.hpp"
 #include "Util/Tape.hpp"
@@ -60,7 +61,7 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
     for (auto in : inputs) {
       for (auto out : outputs) {
         auto grad =
-            builder.create<grad::GradientOp>(loc, in.getType(), out, in);
+            builder.create<nabla::GradientOp>(loc, in.getType(), out, in);
         grads.emplace_back(grad);
       }
     }
@@ -68,10 +69,12 @@ linalg::GenericOp Reverser::reverse(OpBuilder& builder, Value dout) {
     auto dout = args[forwardInputs.size()];
     SmallVector<Value> yields;
     for (auto pair : llvm::zip(grads, args.take_back(grads.size()))) {
-      auto add =
-          util::arith::add(std::get<0>(pair), std::get<1>(pair), builder);
-      auto yield = util::arith::mul(dout, add, builder);
-      yields.emplace_back(yield);
+      auto mul = util::arith::mul(dout, std::get<0>(pair), builder);
+      auto add = util::arith::add(mul, std::get<1>(pair), builder);
+      // auto add =
+      //     util::arith::add(std::get<0>(pair), std::get<1>(pair), builder);
+      // auto yield = util::arith::mul(dout, add, builder);
+      yields.emplace_back(add);
     }
 
     builder.create<linalg::YieldOp>(loc, yields);

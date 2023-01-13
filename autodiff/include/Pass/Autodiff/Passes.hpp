@@ -3,6 +3,7 @@
 
 #include "Dialect/AD/IR/ADDialect.hpp"
 #include "Dialect/Grad/IR/GradDialect.hpp"
+#include "Dialect/Nabla/IR/Nabla.hpp"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"

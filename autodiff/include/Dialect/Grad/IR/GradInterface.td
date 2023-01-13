@@ -13,16 +13,10 @@ def PartialInterface : OpInterface<"PartialInterface"> {
     let methods = [
         InterfaceMethod<
             /*desc*/ "Generate partial derivative for each input of the operation",
-            /*retTy*/ "llvm::SmallVector<::mlir::Value>",
+            /*retTy*/ "::mlir::Value",
             /*methodName*/ "partial",
-            /*args*/ (ins "::mlir::OpBuilder&":$builder)
-        >,
-        InterfaceMethod<
-            "Generate partial derivative for specified input",
-            "::mlir::Value",
-            "partialFor",
-            (ins "::mlir::OpBuilder&":$builder, "unsigned int":$index)
-        >,
+            /*args*/ (ins "::mlir::Value": $input, "::mlir::OpBuilder&": $builder)
+        >
     ];
 }
 

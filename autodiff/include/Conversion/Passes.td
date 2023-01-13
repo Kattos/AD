@@ -46,4 +46,11 @@ def AllocTensorToInitTensor : Pass<"alloc-tensor-to-init-tensor"> {
     let dependentDialects = ["mlir::autodiff::linalgext::LinalgExtDialect", "mlir::bufferization::BufferizationDialect"];
 }
 
+def NablaLowering : Pass<"nabla-lowering"> {
+    let summary = "Lower nabla ops to ops from mlir core dialects";
+    let constructor = "mlir::autodiff::createNablaLowering()";
+
+    let dependentDialects = ["mlir::autodiff::nabla::NablaDialect"];
+}
+
 #endif // AD_CONVERSION_PASSES

@@ -21,7 +21,7 @@ def ExperimentalPass : Pass<"experimental"> {
     let summary = "Pass for experimental purposes";
     let constructor = "mlir::autodiff::createExperimentalPass()";
 
-    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::autodiff::grad::GradDialect", "mlir::bufferization::BufferizationDialect"];
+    let dependentDialects = ["mlir::autodiff::ad::ADDialect", "mlir::autodiff::nabla::NablaDialect", "mlir::bufferization::BufferizationDialect"];
 }
 
 #endif // AUTODIFF_PASSES

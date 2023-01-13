@@ -5,6 +5,7 @@
 #include "Conversion/GradAbstractToConcrete/GradAbstractToConcrete.hpp"
 #include "Conversion/GradToCore/GradToCore.hpp"
 #include "Conversion/LinalgExtConversion/LinalgExtConversion.hpp"
+#include "NablaLowering/NablaLowering.hpp"
 
 #define GEN_PASS_REGISTRATION
 #include "Conversion/Passes.hpp.inc"

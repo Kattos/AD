@@ -2,125 +2,96 @@
 
 #include "Dialect/Grad/IR/GradInterface.hpp"
 #include "Util/Arith.hpp"
+#include "Util/Utils.hpp"
 
 namespace mlir {
 namespace autodiff {
 
-class AddFPartial
-    : public PartialInterface::ExternalModel<AddFPartial, arith::AddFOp> {
+using namespace mlir::arith;
+using namespace util::arith;
+
+template <typename Impl, typename OpTy>
+using Base = PartialInterface::ExternalModel<Impl, OpTy>;
+
+class AddFPartial : public Base<AddFPartial, AddFOp> {
  public:
-  SmallVector<Value> partial(Operation* op, OpBuilder& builder) const {
-    auto one = partialFor(op, builder, 0);
-    return {one, one};
-  }
+  Value partial(Operation* op, Value input, OpBuilder& builder) const {
+    auto addf = cast<AddFOp>(op);
+    auto lhs = addf.getLhs();
+    auto rhs = addf.getRhs();
 
-  Value partialFor(Operation* op, OpBuilder& builder,
-                   unsigned int index) const {
-    if (index >= op->getNumOperands()) {
-      return nullptr;
+    if (input == lhs || input == rhs) {
+      return constant(1.0, builder);
     }
-
-    auto addf = cast<arith::AddFOp>(op);
-    auto type = addf.getType();
-
-    auto loc = builder.getUnknownLoc();
-    auto attr = builder.getFloatAttr(type, 1.0);
-    auto one = builder.create<arith::ConstantOp>(loc, attr);
-
-    return one;
+    return constant(0.0, builder);
   }
 };
 
-class MulFPartial
-    : public PartialInterface::ExternalModel<MulFPartial, arith::MulFOp> {
+class MulFPartial : public Base<MulFPartial, MulFOp> {
  public:
-  SmallVector<Value> partial(Operation* op, OpBuilder& builder) const {
-    auto mulf = cast<arith::MulFOp>(op);
+  Value partial(Operation* op, Value input, OpBuilder& builder) const {
+    auto mulf = cast<MulFOp>(op);
+    auto lhs = mulf.getLhs();
+    auto rhs = mulf.getRhs();
 
-    return {mulf.getRhs(), mulf.getLhs()};
-  }
-
-  Value partialFor(Operation* op, OpBuilder& builder,
-                   unsigned int index) const {
-    if (index >= op->getNumOperands()) {
-      return nullptr;
+    if (input == lhs) {
+      return rhs;
+    } else if (input == rhs) {
+      return lhs;
     }
-    auto mulf = cast<arith::MulFOp>(op);
 
-    return index == 0 ? mulf.getRhs() : mulf.getLhs();
+    return constant(0.0, builder);
   }
 };
 
-class SubFPartial
-    : public PartialInterface::ExternalModel<SubFPartial, arith::SubFOp> {
+class SubFPartial : public Base<SubFPartial, SubFOp> {
  public:
-  SmallVector<Value> partial(Operation* op, OpBuilder& builder) const {
-    auto subf = cast<arith::SubFOp>(op);
-    auto type = subf.getType();
+  Value partial(Operation* op, Value input, OpBuilder& builder) const {
+    auto subf = cast<SubFOp>(op);
+    auto lhs = subf.getLhs();
+    auto rhs = subf.getRhs();
 
-    auto loc = builder.getUnknownLoc();
-    auto posAttr = builder.getFloatAttr(type, 1.0);
-    auto pos = builder.create<arith::ConstantOp>(loc, posAttr);
-    auto negAttr = builder.getFloatAttr(type, -1.0);
-    auto neg = builder.create<arith::ConstantOp>(loc, negAttr);
-
-    return {pos, neg};
-  }
-
-  Value partialFor(Operation* op, OpBuilder& builder,
-                   unsigned int index) const {
-    if (index >= op->getNumOperands()) {
-      return nullptr;
+    if (input == lhs) {
+      return constant(1.0, builder);
+    } else if (input == rhs) {
+      return constant(-1.0, builder);
     }
 
-    auto addf = cast<arith::SubFOp>(op);
-    auto type = addf.getType();
-
-    auto loc = builder.getUnknownLoc();
-    auto attr = builder.getFloatAttr(type, index == 0 ? 1.0 : -1.0);
-    auto one = builder.create<arith::ConstantOp>(loc, attr);
-
-    return one;
+    return constant(0.0, builder);
   }
 };
 
-class DivFPartial
-    : public PartialInterface::ExternalModel<DivFPartial, arith::DivFOp> {
+class DivFPartial : public Base<DivFPartial, DivFOp> {
  public:
   SmallVector<Value> partial(Operation* op, OpBuilder& builder) const {
     return {};
   }
 
-  Value partialFor(Operation* op, OpBuilder& builder,
-                   unsigned int index) const {
-    if (index >= op->getNumOperands()) {
-      return nullptr;
-    }
-
-    auto divf = cast<arith::DivFOp>(op);
+  Value partial(Operation* op, Value input, OpBuilder& builder) const {
+    auto divf = cast<DivFOp>(op);
     auto lhs = divf.getLhs();
     auto rhs = divf.getRhs();
 
-    auto one = util::arith::constant(0.0, builder);
-    auto loc = builder.getUnknownLoc();
-
-    if (index == 0) {
-      return builder.create<arith::DivFOp>(loc, one, rhs);
+    if (input == lhs) {
+      auto one = constant(1.0, builder);
+      return div(one, rhs, builder);
+    } else if (input == rhs) {
+      auto neg = constant(-1.0, builder);
+      auto sqr = mul(rhs, rhs, builder);
+      auto negSqr = mul(neg, sqr, builder);
+      return mul(lhs, negSqr, builder);
     }
 
-    auto square = util::arith::mul(rhs, rhs, builder);
-    auto neg = util::arith::constant(-1.0, builder);
-    auto negSquare = util::arith::mul(square, neg, builder);
-    return builder.create<arith::DivFOp>(loc, lhs, negSquare);
+    return constant(0.0, builder);
   }
 };
 
 void registerArithPartial(DialectRegistry& registry) {
-  registry.addExtension(+[](MLIRContext* context, arith::ArithDialect*) {
-    arith::AddFOp::attachInterface<AddFPartial>(*context);
-    arith::MulFOp::attachInterface<MulFPartial>(*context);
-    arith::SubFOp::attachInterface<SubFPartial>(*context);
-    arith::DivFOp::attachInterface<DivFPartial>(*context);
+  registry.addExtension(+[](MLIRContext* context, ArithDialect*) {
+    AddFOp::attachInterface<AddFPartial>(*context);
+    MulFOp::attachInterface<MulFPartial>(*context);
+    SubFOp::attachInterface<SubFPartial>(*context);
+    DivFOp::attachInterface<DivFPartial>(*context);
   });
 }
 

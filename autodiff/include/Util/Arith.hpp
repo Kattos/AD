@@ -11,6 +11,8 @@ namespace arith {
 Value constant(double value, OpBuilder& builder, Type type = nullptr);
 Value add(Value lhs, Value rhs, OpBuilder& builder);
 Value mul(Value lhs, Value rhs, OpBuilder& builder);
+Value sub(Value lhs, Value rhs, OpBuilder& builder);
+Value div(Value lhs, Value rhs, OpBuilder& builder);
 
 }  // namespace arith
 }  // namespace util

@@ -103,7 +103,7 @@ def Grad_Conv2DOp : Grad_Op<"conv2d"> {
         ConfinedAttr<I64ArrayAttr, [ArrayCount<4>]>: $pad
     );
 
-    let results = (outs 
+    let results = (outs
         Grad_Tensor4D: $dx,
         Grad_Tensor4D: $dweight,
         Grad_Tensor1D: $dbias
